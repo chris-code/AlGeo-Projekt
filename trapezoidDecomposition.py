@@ -1,3 +1,7 @@
+# Nachbarn werden als lowerLeft, lowerRight, upperLeft und upperRight gespeichert.
+# Was, wenn es auf einer Seite nur einen Nachbarn gibt?
+# Was, wenn es keinen gibt (degeneriertes Trapez)
+
 import numpy as np
 import visualization as vis
 
@@ -28,11 +32,12 @@ class Trapezoid():
 		self.top = top
 		self.leftPoint = leftPoint
 		self.rightPoint = rightPoint
-		self.neighbors = {}
+		self.neighbors = {'lowerLeft': None, 'lowerRight': None, 'upperLeft': None, 'upperRight': None}
 
 class DAGnode():
 	def __init__(self, content):
 		self.content = content
+		content.dagNode = self
 
 class DAG():
 	def __init__(self, root):
@@ -53,7 +58,64 @@ class DAG():
 			else:
 				raise Exception('Unknown node type in DAG')
 		return node.content
+	def splitSingleTrapezoid(self, oldTrapezoid, edge): # returns new trapezoids
+		# Create new trapezoids
+		a = Trapezoid(oldTrapezoid.bottom, oldTrapezoid.top, oldTrapezoid.leftPoint, edge.left)
+		b = Trapezoid(edge, oldTrapezoid.top, edge.left, edge.right)
+		c = Trapezoid(oldTrapezoid.bottom, edge, edge.left, edge.right)
+		d = Trapezoid(oldTrapezoid.bottom, oldTrapezoid.top, edge.right, oldTrapezoid.rightPoint)
 		
+		# Set their neighbor relations
+		a.neighbors['lowerLeft'] = oldTrapezoid.neighbors['lowerLeft']
+		a.neighbors['upperLeft'] = oldTrapezoid.neighbors['upperLeft']
+		a.neighbors['lowerRight'] = c
+		a.neighbors['upperRight'] = b
+		b.neighbors['lowerLeft'] = a # TODO ist das so richtig...
+		b.neighbors['upperLeft'] = a
+		b.neighbors['lowerRight'] = d
+		b.neighbors['upperRight'] = d
+		c.neighbors['lowerLeft'] = a
+		c.neighbors['upperLeft'] = a
+		c.neighbors['lowerRight'] = d
+		c.neighbors['upperRight'] = d # .. bis hier?
+		d.neighbors['lowerLeft'] = c
+		d.neighbors['upperLeft'] = b
+		d.neighbors['lowerRight'] = oldTrapezoid.neighbors['lowerRight']
+		d.neighbors['upperRight'] = oldTrapezoid.neighbors['upperRight']
+		
+		# Set neighbor relations of the neighbors of the old trapezoid
+		if oldTrapezoid.neighbors['lowerLeft'] is not None: # avoid bounding box
+			oldTrapezoid.neighbors['lowerLeft'].neighbors['upperRight'] = a
+		if oldTrapezoid.neighbors['upperLeft'] is not None:
+			oldTrapezoid.neighbors['upperLeft'].neighbors['lowerRight'] = a
+		if oldTrapezoid.neighbors['lowerRight'] is not None:
+			oldTrapezoid.neighbors['lowerRight'].neighbors['upperLeft'] = d
+		if oldTrapezoid.neighbors['upperRight'] is not None:
+			oldTrapezoid.neighbors['upperRight'].neighbors['lowerLeft'] = d
+		
+		# Actually update D
+		aNode = DAGnode(a)
+		bNode = DAGnode(b)
+		cNode = DAGnode(c)
+		dNode = DAGnode(d)
+		edgeNode = DAGnode(edge)
+		edgeRightEndNode = DAGnode(edge.right)
+		
+		oldNode = oldTrapezoid.dagNode
+		oldNode.content = edge.left
+		oldNode.left = aNode
+		oldNode.right = edgeRightEndNode
+		
+		edgeRightEndNode.left = edgeNode
+		edgeRightEndNode.right = dNode
+		
+		edgeNode.left = bNode
+		edgeNode.right = cNode
+		#TODO
+		
+		
+		
+		return {a, b, c, d}
 
 def readDataset(filename):
 	with open(filename, 'r') as f:
@@ -93,10 +155,11 @@ def limits(pointSet):
 		yMax = max(point.y, yMax)
 	return xMin, yMin, xMax, yMax
 
-def intersectedTrapezoids(T, D, edge):
-	H = set()
+#def intersectedTrapezoids(T, D, edge):
+def intersectedTrapezoids(D, edge):
 	previousDelta = D.findTrapezoid(edge.left)
-	H.add(previousDelta)
+	H = {previousDelta}
+	
 	while edge.right.x > previousDelta.rightPoint.x:
 		if previousDelta.rightPoint.isAbove(edge):
 			previousDelta = previousDelta.neighbors['lowerRight']
@@ -111,8 +174,8 @@ def trapezoidDecomposition(vertices, edges):
 	xMin, yMin, xMax, yMax = limits(vertices)
 	lowerLeftPoint = Point(xMin-2, yMin-2) # Lower left
 	lowerRightPoint = Point(xMax+1, yMin-1) # Lower right
-	upperLeftPoint = Point(xMin-1, yMax+1) # Upper left
-	upperRightPoint = Point(xMax+2, yMax+2) # Upper right
+	#upperLeftPoint = Point(xMin-1, yMax+1) # Upper left
+	#upperRightPoint = Point(xMax+2, yMax+2) # Upper right
 	bottom = Line(vertices[-4], vertices[-3]) # Bottom
 	#right = Line(vertices[-3], vertices[-1]) # Right
 	top = Line(vertices[-2], vertices[-1]) # Top
@@ -126,12 +189,17 @@ def trapezoidDecomposition(vertices, edges):
 	
 	random.shuffle(edges)
 	for edge in edges:
-		H = intersectedTrapezoids(T, D, edge)
+		print(len(T))
+		#H = intersectedTrapezoids(T, D, edge)
+		H = intersectedTrapezoids(D, edge)
 		T -= H
-		if len(H) == 1: #TODO
-			pass
+		
+		if len(H) == 1:
+			newTrapezoids = D.splitSingleTrapezoid(H.pop(), edge)
+			T |= newTrapezoids # T.update(newTrapezoids)
 		else:
 			pass
+			# TODO
 	
 	return T, D
 
