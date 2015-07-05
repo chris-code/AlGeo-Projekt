@@ -26,10 +26,10 @@ def visualizePointLocalization(vertices, edges, queries):
 		y = canvasSizeY - (scaling * vertex.y + offset)
 		surface.create_oval(x-4, y-4, x+4, y+4, fill = 'black')
 	for edge in edges:
-		xI = scaling * edge.left.x + offset
-		yI = canvasSizeY - (scaling * edge.left.y + offset)
-		xJ = scaling * edge.right.x + offset
-		yJ = canvasSizeY - (scaling * edge.right.y + offset)
+		xI = scaling * edge.p.x + offset
+		yI = canvasSizeY - (scaling * edge.p.y + offset)
+		xJ = scaling * edge.q.x + offset
+		yJ = canvasSizeY - (scaling * edge.q.y + offset)
 		surface.create_line(xI, yI, xJ, yJ, width = 2)
 	for query in queries:
 		x = scaling * query.x + offset
