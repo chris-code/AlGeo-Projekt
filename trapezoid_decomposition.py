@@ -1,4 +1,5 @@
 import random
+import visualization as vis
 
 class Point:
 	def __init__(self, x, y):
@@ -23,6 +24,9 @@ class Line:
 	def __init__(self, p, q):
 		self.p = p
 		self.q = q
+	
+	def __str__(self):
+		return '({0},{1} -> {2},{3})'.format(self.p.x, self.p.y, self.q.x, self.q.y)
 
 class Trapezoid:
 	def __init__(self, top, bot, leftp, rightp):
@@ -139,6 +143,19 @@ def construct_trapezoid_decomposition(edges):
 			C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, A_trap, D_trap
 			D_trap.nw, D_trap.ne, D_trap.sw, D_trap.se = B_trap, delta0.ne, C_trap, delta0.se
 			
+			# Update delta0's neighbor's neighbor-pointers.
+			if delta0.nw is not None:
+				delta0.nw.se = A_trap
+			if delta0.sw is not None:
+				delta0.sw.ne = A_trap
+			if delta0.ne is not None:
+				delta0.ne.sw = D_trap
+			if delta0.se is not None:
+				delta0.se.nw = D_trap
+			
+			# Update decomposition
+			T.update([A_trap, B_trap, C_trap, D_trap])
+			
 			# Update search structure
 			A_node = Tree(A_trap)
 			B_node = Tree(B_trap)
@@ -157,6 +174,7 @@ def construct_trapezoid_decomposition(edges):
 
 filename = 'data/punktlokalisierung_example'
 vertices, edges, queries = readDataset(filename)
+#~ vis.visualizePointLocalization(vertices, edges, queries)
 T, D = construct_trapezoid_decomposition(edges)
 
 
