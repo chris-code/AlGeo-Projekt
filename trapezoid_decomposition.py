@@ -1,10 +1,16 @@
 import random
 import visualization as vis
 
+indent_string = '  '
+
 class Point:
+	class_counter = 0
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
+		
+		self.ident = Point.class_counter
+		Point.class_counter += 1
 	
 	def is_left_of(self, point):
 		return self.x < point.x
@@ -17,18 +23,26 @@ class Point:
 		det = line.q.x * self.y + line.p.x * line.q.y + line.p.y * self.x - line.p.y * line.q.x - line.q.y * self.x - self.y * line.p.x
 		return det > 0
 	
-	def __str__(self):
-		return '({0},{1})'.format(self.x, self.y)
+	def __str__(self, indent=0):
+		string_representation = indent_string * indent
+		string_representation += 'Po{0}: ({1},{2})'.format(self.ident, self.x, self.y)
+		return string_representation
 
 class Line:
+	class_counter = 0
 	def __init__(self, p, q):
 		self.p = p
 		self.q = q
+		self.ident = Line.class_counter
+		Line.class_counter += 1
 	
-	def __str__(self):
-		return '({0},{1} -> {2},{3})'.format(self.p.x, self.p.y, self.q.x, self.q.y)
+	def __str__(self, indent=0):
+		string_representation = indent_string * indent
+		string_representation += 'Li{0}: ({1},{2}->{3},{4})'.format(self.ident, self.p.x, self.p.y, self.q.x, self.q.y)
+		return string_representation
 
 class Trapezoid:
+	class_counter = 0
 	def __init__(self, top, bot, leftp, rightp):
 		self.top = top
 		self.bot = bot
@@ -39,6 +53,24 @@ class Trapezoid:
 		self.ne = None
 		self.sw = None
 		self.se = None
+		
+		self.ident = Trapezoid.class_counter
+		Trapezoid.class_counter += 1
+	
+	def __str__(self, indent=0):
+		string_representation = indent_string * indent
+		string_representation += 'Tr{0}: Top={1}, Bot={2}, LeftP={3}, RightP={4}'
+		string_representation += 'nw={5}, ne={6}, sw={7}, se={8}'
+		nw, ne, sw, se = None, None, None, None
+		if self.nw is not None:
+			nw = self.nw.ident
+		if self.ne is not None:
+			ne = self.ne.ident
+		if self.sw is not None:
+			sw = self.sw.ident
+		if self.se is not None:
+			se = self.se.ident
+		return string_representation.format(self.ident, self.top, self.bot, self.leftp, self.rightp, nw, ne, sw, se)
 
 class Decomposition(set):
 	def get_intersected_trapezoids(self, D, line):
@@ -49,6 +81,12 @@ class Decomposition(set):
 			else:
 				deltata.append(deltata[-1].ne)
 		return set(deltata)
+	
+	def __str__(self):
+		string_representation = ''
+		for trapezoid in self:
+			string_representation += '{0}\n'.format(trapezoid)
+		return string_representation
 
 # For an inner node that represents a line, the left pointer references
 # the area above the line, and the right pointer the area below
@@ -78,6 +116,17 @@ class Tree:
 				return self.right._find_node(point)
 		else:
 			raise Exception('Nope.')
+	
+	def __str__(self, indent=0):
+		pass #TODO
+		string_representation = indent_string * indent
+		string_representation += '{0}'.format(self.content)
+		if not isinstance(self.content, Trapezoid):
+			string_representation += '\n'
+			string_representation += self.left.__str__(indent+1)
+			string_representation += '\n'
+			string_representation += self.right.__str__(indent+1)
+		return string_representation
 
 def readDataset(filename):
 	with open(filename, 'r') as f:
@@ -95,6 +144,8 @@ def readDataset(filename):
 			if vertices[int(i)-1].x > vertices[int(j)-1].x:
 				i, j = j, i
 			edges.append( Line(vertices[int(i)-1], vertices[int(j)-1]) )
+		edges.pop(0) #FIXME
+		edges.pop(0) #FIXME
 		for _ in range(l):
 			x, y = f.readline().strip().split()
 			queries.append( Point(int(x), int(y)) )
@@ -126,6 +177,9 @@ def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
 	for line in edges:
+		print('\nT:\n{0}'.format(T))
+		print('D:\n{0}'.format(D))
+		print('Adding line {0}'.format(line)) #FIXME
 		H = T.get_intersected_trapezoids(D, line)
 		T -= H
 		if len(H) == 1:
