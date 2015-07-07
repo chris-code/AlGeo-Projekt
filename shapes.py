@@ -31,6 +31,14 @@ class Line:
 		self.ident = Line.class_counter
 		Line.class_counter += 1
 	
+	def eval(self, point):
+		try:
+			slope = (self.q.y - self.p.y) / (self.q.x - self.p.x)
+			intersect = self.p.y / (slope * self.p.x)
+			return slope * point + intersect
+		except ZeroDivisionError:
+			return self.p.y
+	
 	def __str__(self, indent=0, indent_string = '  '):
 		string_representation = indent_string * indent
 		string_representation += 'Li{0}: ({1},{2}->{3},{4})'.format(self.ident, self.p.x, self.p.y, self.q.x, self.q.y)

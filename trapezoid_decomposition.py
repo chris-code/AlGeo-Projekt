@@ -105,9 +105,10 @@ def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
 	for line in edges:
+		vis.draw_decomposition(T)
 		print('\nT:\n{0}'.format(T))
 		print('D:\n{0}'.format(D))
-		print('Adding line {0}'.format(line)) #FIXME
+		print('Adding line {0}'.format(line))
 		H = T.get_intersected_trapezoids(D, line)
 		T -= H
 		if len(H) == 1:
