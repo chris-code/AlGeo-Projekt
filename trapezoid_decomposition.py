@@ -4,7 +4,11 @@ import visualization as vis
 
 class Decomposition(set):
 	def get_intersected_trapezoids(self, D, line):
-		deltata = [ D.find(line.p) ]
+		#~ TODO justify searching for a point on the Line l_i just after
+		#~ the point p_i, instead of searching for p_i directly
+		#~ deltata = [ D.find(line.p) ]
+		search_start = Point(line.p.x * 0.99 + line.q.x*0.01, line.p.y * 0.99 + line.q.y*0.01)
+		deltata = [ D.find(search_start) ]
 		while line.q.is_right_of(deltata[-1].rightp):
 			if deltata[-1].rightp.is_above(line):
 				deltata.append(deltata[-1].se)
@@ -72,8 +76,6 @@ def readDataset(filename):
 			if vertices[int(i)-1].x > vertices[int(j)-1].x:
 				i, j = j, i
 			edges.append( Line(vertices[int(i)-1], vertices[int(j)-1]) )
-		edges.pop(0) #FIXME
-		edges.pop(0) #FIXME
 		for _ in range(l):
 			x, y = f.readline().strip().split()
 			queries.append( Point(int(x), int(y)) )
@@ -105,53 +107,136 @@ def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
 	for line in edges:
-		vis.draw_decomposition(T)
-		print('\nT:\n{0}'.format(T))
-		print('D:\n{0}'.format(D))
-		print('Adding line {0}'.format(line))
+		#~ print('--------------------')
+		#~ print('\nT:\n{0}'.format(T))
+		#~ print('D:\n{0}'.format(D))
+		#~ print('\nAdding line {0}'.format(line))
+		#~ print('--------------------')
+		#~ vis.draw_decomposition(T)
 		H = T.get_intersected_trapezoids(D, line)
 		T -= H
 		if len(H) == 1:
 			delta0 = H.pop()
 			
-			# Split into 4 trapezoids
-			A_trap = Trapezoid(delta0.top, delta0.bot, delta0.leftp, line.p)
-			B_trap = Trapezoid(delta0.top, line, line.p, line.q)
-			C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
-			D_trap = Trapezoid(delta0.top, delta0.bot, line.q, delta0.rightp)
-			
-			# Set neighbors
-			A_trap.nw, A_trap.ne, A_trap.sw, A_trap.se = delta0.nw, B_trap, delta0.sw, C_trap
-			B_trap.nw, B_trap.ne, B_trap.sw, B_trap.se = A_trap, D_trap, None, None
-			C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, A_trap, D_trap
-			D_trap.nw, D_trap.ne, D_trap.sw, D_trap.se = B_trap, delta0.ne, C_trap, delta0.se
-			
-			# Update delta0's neighbor's neighbor-pointers.
-			if delta0.nw is not None:
-				delta0.nw.se = A_trap
-			if delta0.sw is not None:
-				delta0.sw.ne = A_trap
-			if delta0.ne is not None:
-				delta0.ne.sw = D_trap
-			if delta0.se is not None:
-				delta0.se.nw = D_trap
-			
-			# Update decomposition
-			T.update([A_trap, B_trap, C_trap, D_trap])
-			
-			# Update search structure
-			A_node = Tree(A_trap)
-			B_node = Tree(B_trap)
-			C_node = Tree(C_trap)
-			D_node = Tree(D_trap)
-			s_node = Tree(line, B_node, C_node)
-			q_node = Tree(line.q, s_node, D_node)
-			p_node = D._find_node(line.p)
-			p_node.content = line.p
-			p_node.left = A_node
-			p_node.right = q_node
+			if line.p.x > delta0.leftp.x and line.q.x < delta0.rightp.x:
+				# Split into 4 trapezoids
+				A_trap = Trapezoid(delta0.top, delta0.bot, delta0.leftp, line.p)
+				B_trap = Trapezoid(delta0.top, line, line.p, line.q)
+				C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
+				D_trap = Trapezoid(delta0.top, delta0.bot, line.q, delta0.rightp)
+				
+				# Set neighbors
+				A_trap.nw, A_trap.ne, A_trap.sw, A_trap.se = delta0.nw, B_trap, delta0.sw, C_trap
+				B_trap.nw, B_trap.ne, B_trap.sw, B_trap.se = A_trap, D_trap, None, None
+				C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, A_trap, D_trap
+				D_trap.nw, D_trap.ne, D_trap.sw, D_trap.se = B_trap, delta0.ne, C_trap, delta0.se
+				
+				# Update delta0's neighbor's neighbor-pointers.
+				if delta0.nw is not None:
+					if delta0.nw.se is delta0:
+						delta0.nw.se = A_trap
+					elif delta0.nw.ne is delta0:
+						delta0.nw.ne = A_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				if delta0.sw is not None:
+					if delta0.sw.ne is delta0:
+						delta0.sw.ne = A_trap
+					elif delta0.sw.se is delta0:
+						delta0.sw.se = A_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				if delta0.ne is not None:
+					if delta0.ne.sw is delta0:
+						delta0.ne.sw = D_trap
+					elif delta0.ne.nw is delta0:
+						delta0.ne.nw = D_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				if delta0.se is not None:
+					if delta0.se.nw is delta0:
+						delta0.se.nw = D_trap
+					elif delta0.se.sw is delta0:
+						delta0.se.sw = D_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				
+				# Update decomposition
+				T.update([A_trap, B_trap, C_trap, D_trap])
+				
+				# Update search structure
+				A_node = Tree(A_trap)
+				B_node = Tree(B_trap)
+				C_node = Tree(C_trap)
+				D_node = Tree(D_trap)
+				s_node = Tree(line, B_node, C_node)
+				q_node = Tree(line.q, s_node, D_node)
+				p_node = D._find_node(line.p)
+				p_node.content = line.p
+				p_node.left = A_node
+				p_node.right = q_node
+			elif line.p.x == delta0.leftp.x and line.q.x < delta0.rightp.x:
+				# Split into 4 trapezoids
+				B_trap = Trapezoid(delta0.top, line, line.p, line.q)
+				C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
+				D_trap = Trapezoid(delta0.top, delta0.bot, line.q, delta0.rightp)
+				
+				# Set neighbors
+				B_trap.nw, B_trap.ne, B_trap.sw, B_trap.se = delta0.nw, D_trap, None, None
+				C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, delta0.sw, D_trap
+				D_trap.nw, D_trap.ne, D_trap.sw, D_trap.se = B_trap, delta0.ne, C_trap, delta0.se
+				
+				# Update delta0's neighbor's neighbor-pointers.
+				if delta0.nw is not None:
+					if delta0.nw.se is delta0:
+						delta0.nw.se = B_trap
+					elif delta0.nw.ne is delta0:
+						delta0.nw.ne = B_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				if delta0.sw is not None:
+					if delta0.sw.ne is delta0:
+						delta0.sw.ne = C_trap
+					elif delta0.sw.se is delta0:
+						delta0.sw.se = C_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				if delta0.ne is not None:
+					if delta0.ne.sw is delta0:
+						delta0.ne.sw = D_trap
+					elif delta0.ne.nw is delta0:
+						delta0.ne.nw = D_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				if delta0.se is not None:
+					if delta0.se.nw is delta0:
+						delta0.se.nw = D_trap
+					elif delta0.se.sw is delta0:
+						delta0.se.sw = D_trap
+					else:
+						raise Exception('Unlinked neighbor!')
+				
+				# Update decomposition
+				T.update([A_trap, B_trap, C_trap, D_trap])
+				
+				# Update search structure
+				# TODO is das sinnvoll so, Yannick?
+				B_node = Tree(B_trap)
+				C_node = Tree(C_trap)
+				D_node = Tree(D_trap)
+				s_node = Tree(line, B_node, C_node)
+				q_node = D._find_node(line.q)
+				q_node.content = line.q
+				q_node.left = s_node
+				q_node.right = D_node
+			elif line.p.x > delta0.leftp.x and line.q.x == delta0.rightp.x:
+				T |= H # FIXME
+				T.update([delta0])
+			else: # line.p.x = delta0.leftp.x and line.q.x = delta0.rightp.x
+				T |= H # FIXME
+				T.update([delta0])
 		else:
-			pass
+			T |= H # FIXME
 		
 	return T, D
 
