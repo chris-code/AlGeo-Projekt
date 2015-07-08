@@ -34,7 +34,7 @@ class Line:
 	def eval(self, point):
 		try:
 			slope = (self.q.y - self.p.y) / (self.q.x - self.p.x)
-			intersect = self.p.y / (slope * self.p.x)
+			intersect = self.p.y - slope * self.p.x
 			return slope * point + intersect
 		except ZeroDivisionError:
 			return self.p.y
@@ -63,7 +63,7 @@ class Trapezoid:
 	def __str__(self, indent=0, indent_string = '  '):
 		string_representation = indent_string * indent
 		string_representation += 'Tr{0}: Top={1}, Bot={2}, LeftP={3}, RightP={4}'
-		string_representation += 'nw={5}, ne={6}, sw={7}, se={8}'
+		string_representation += ' nw={5}, ne={6}, sw={7}, se={8}'
 		nw, ne, sw, se = None, None, None, None
 		if self.nw is not None:
 			nw = self.nw.ident
