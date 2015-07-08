@@ -13,13 +13,10 @@ def get_limits(points):
 		max_y = max(max_y, point.y)
 	return min_x, max_x, min_y, max_y
 
-def getUpperLimits(pointSets):
-	maxX, maxY = pointSets[0][0].x, pointSets[0][0].y
-	for pointSet in pointSets:
-		for point in pointSet:
-			maxX = max(point.x, maxX)
-			maxY = max(point.y, maxY)
-	return maxX, maxY
+def draw_point(canv, point, scaling, offset):
+	x = scaling * point.x + offset
+	y = canvasSizeY - (scaling * point.y + offset)
+	canv.create_oval(x-4, y-4, x+4, y+4, fill='black')
 
 def draw_line(canv, p, q, scaling, offset):
 	px = scaling * p.x + offset
@@ -29,29 +26,21 @@ def draw_line(canv, p, q, scaling, offset):
 	canv.create_line(px, py, qx, qy, width = 2)
 
 def visualizePointLocalization(vertices, edges, queries):
-	maxX, maxY = getUpperLimits([vertices, queries]) # 'largest' point to draw
+	min_x, max_x, min_y, max_y = get_limits(vertices + queries)
 	offset = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
-	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(maxX, maxY)
+	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(max_x, max_y)
 	
 	root = tk.Tk()
 	root.resizable(tk.FALSE, tk.FALSE)
 
-	surface = tk.Canvas(root, width = canvasSizeX, height = canvasSizeY)
-	surface.pack()
+	canv = tk.Canvas(root, width = canvasSizeX, height = canvasSizeY)
+	canv.pack()
 	for vertex in vertices:
-		x = scaling * vertex.x + offset
-		y = canvasSizeY - (scaling * vertex.y + offset)
-		surface.create_oval(x-4, y-4, x+4, y+4, fill = 'black')
+		draw_point(canv, vertex, scaling, offset)
 	for edge in edges:
-		xI = scaling * edge.p.x + offset
-		yI = canvasSizeY - (scaling * edge.p.y + offset)
-		xJ = scaling * edge.q.x + offset
-		yJ = canvasSizeY - (scaling * edge.q.y + offset)
-		surface.create_line(xI, yI, xJ, yJ, width = 2)
+		draw_line(canv, edge.p, edge.q, scaling, offset)
 	for query in queries:
-		x = scaling * query.x + offset
-		y = canvasSizeY - (scaling * query.y + offset)
-		surface.create_oval(x-4, y-4, x+4, y+4, fill = 'black')
+		draw_point(canv, query, scaling, offset)
 		
 	root.mainloop()
 
@@ -81,6 +70,10 @@ def draw_decomposition(T):
 		p3 = Point(trapezoid.rightp.x, trapezoid.top.eval(trapezoid.rightp.x))
 		p4 = Point(trapezoid.rightp.x, trapezoid.bot.eval(trapezoid.rightp.x))
 		draw_line(canv, p3, p4, scaling, offset)
+		
+		#~ FIXME this is to test that there are no 0-width trapezoids left
+		#~ Remove once this is achieved
+		#~ print('Width={0}'.format(trapezoid.rightp.x - trapezoid.leftp.x))
 	
 	root.mainloop()
 
