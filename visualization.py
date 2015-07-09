@@ -4,7 +4,7 @@ from shapes import *
 canvasSizeX = 400
 canvasSizeY = 400
 
-def get_limits(points):
+def _get_limits(points):
 	min_x, max_x, min_y, max_y = 1000, -1000, 1000, -1000
 	for point in points:
 		min_x = min(min_x, point.x)
@@ -25,25 +25,6 @@ def draw_line(canv, p, q, scaling, offset):
 	qy = canvasSizeY - (scaling * q.y + offset)
 	canv.create_line(px, py, qx, qy, width = 2)
 
-def visualizePointLocalization(vertices, edges, queries):
-	min_x, max_x, min_y, max_y = get_limits(vertices + queries)
-	offset = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
-	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(max_x, max_y)
-	
-	root = tk.Tk()
-	root.resizable(tk.FALSE, tk.FALSE)
-
-	canv = tk.Canvas(root, width = canvasSizeX, height = canvasSizeY)
-	canv.pack()
-	for vertex in vertices:
-		draw_point(canv, vertex, scaling, offset)
-	for edge in edges:
-		draw_line(canv, edge.p, edge.q, scaling, offset)
-	for query in queries:
-		draw_point(canv, query, scaling, offset)
-		
-	root.mainloop()
-
 def draw_decomposition(T):
 	root = tk.Tk()
 	root.resizable(tk.FALSE, tk.FALSE)
@@ -54,7 +35,7 @@ def draw_decomposition(T):
 	points += [trapezoid.top.q for trapezoid in T]
 	points += [trapezoid.bot.p for trapezoid in T]
 	points += [trapezoid.bot.q for trapezoid in T]
-	min_x, max_x, min_y, max_y = get_limits(points)
+	min_x, max_x, min_y, max_y = _get_limits(points)
 	
 	offset = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
 	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(max_x, max_y)
@@ -77,7 +58,24 @@ def draw_decomposition(T):
 	
 	root.mainloop()
 
+def draw_scenario(vertices, edges, queries):
+	min_x, max_x, min_y, max_y = _get_limits(vertices + queries)
+	offset = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
+	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(max_x, max_y)
+	
+	root = tk.Tk()
+	root.resizable(tk.FALSE, tk.FALSE)
 
+	canv = tk.Canvas(root, width = canvasSizeX, height = canvasSizeY)
+	canv.pack()
+	for vertex in vertices:
+		draw_point(canv, vertex, scaling, offset)
+	for edge in edges:
+		draw_line(canv, edge.p, edge.q, scaling, offset)
+	for query in queries:
+		draw_point(canv, query, scaling, offset)
+		
+	root.mainloop()
 
 
 
