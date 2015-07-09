@@ -2,6 +2,7 @@
 #~ Mehr Daten generieren
 #~ Möglichkeit finden, Punkte Facetten zuzuordnen
 #~ Überlegen, wie das mit |delta| > 1 funktioniert
+#~ Kommentieren
 
 import random
 from shapes import *
@@ -168,7 +169,7 @@ def handle_one_trapezoid_completely_inside(T, D, delta0, line):
 	p_node.right = q_node
 
 def handle_one_trapezoid_left_touching(T, D, delta0, line):
-	# Split into 4 trapezoids
+	# Split into 3 trapezoids
 	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
 	C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
 	D_trap = Trapezoid(delta0.top, delta0.bot, line.q, delta0.rightp)
@@ -212,7 +213,6 @@ def handle_one_trapezoid_left_touching(T, D, delta0, line):
 	T.update([B_trap, C_trap, D_trap])
 	
 	# Update search structure
-	# TODO is das sinnvoll so, Yannick?
 	B_node = Tree(B_trap)
 	C_node = Tree(C_trap)
 	D_node = Tree(D_trap)
@@ -222,62 +222,59 @@ def handle_one_trapezoid_left_touching(T, D, delta0, line):
 	q_node.left = s_node
 	q_node.right = D_node
 
-#~ def handle_one_trapezoid_right_touching(T, D, delta0, line):
-	#~ # Split into 4 trapezoids
-	#~ A_trap = Trapezoid(delta0.top, delta0.bot, delta0.leftp, line.p)
-	#~ B_trap = Trapezoid(delta0.top, line, line.p, line.q)
-	#~ C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
-	#~ 
-	#~ # Set neighbors
-	#~ A_trap.nw, A_trap.ne, A_trap.sw, A_trap.se = delta0.nw, B_trap, delta0.sw, C_trap
-	#~ B_trap.nw, B_trap.ne, B_trap.sw, B_trap.se = A_trap, D_trap, None, None
-	#~ C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, A_trap, D_trap
-	#~ D_trap.nw, D_trap.ne, D_trap.sw, D_trap.se = B_trap, delta0.ne, C_trap, delta0.se
-	#~ 
-	#~ # Update delta0's neighbor's neighbor-pointers.
-	#~ if delta0.nw is not None:
-		#~ if delta0.nw.se is delta0:
-			#~ delta0.nw.se = A_trap
-		#~ elif delta0.nw.ne is delta0:
-			#~ delta0.nw.ne = A_trap
-		#~ else:
-			#~ raise Exception('Unlinked neighbor!')
-	#~ if delta0.sw is not None:
-		#~ if delta0.sw.ne is delta0:
-			#~ delta0.sw.ne = A_trap
-		#~ elif delta0.sw.se is delta0:
-			#~ delta0.sw.se = A_trap
-		#~ else:
-			#~ raise Exception('Unlinked neighbor!')
-	#~ if delta0.ne is not None:
-		#~ if delta0.ne.sw is delta0:
-			#~ delta0.ne.sw = D_trap
-		#~ elif delta0.ne.nw is delta0:
-			#~ delta0.ne.nw = D_trap
-		#~ else:
-			#~ raise Exception('Unlinked neighbor!')
-	#~ if delta0.se is not None:
-		#~ if delta0.se.nw is delta0:
-			#~ delta0.se.nw = D_trap
-		#~ elif delta0.se.sw is delta0:
-			#~ delta0.se.sw = D_trap
-		#~ else:
-			#~ raise Exception('Unlinked neighbor!')
-	#~ 
-	#~ # Update decomposition
-	#~ T.update([A_trap, B_trap, C_trap, D_trap])
-	#~ 
-	#~ # Update search structure
-	#~ A_node = Tree(A_trap)
-	#~ B_node = Tree(B_trap)
-	#~ C_node = Tree(C_trap)
-	#~ D_node = Tree(D_trap)
-	#~ s_node = Tree(line, B_node, C_node)
-	#~ q_node = Tree(line.q, s_node, D_node)
-	#~ p_node = D._find_node(line.p)
-	#~ p_node.content = line.p
-	#~ p_node.left = A_node
-	#~ p_node.right = q_node
+def handle_one_trapezoid_right_touching(T, D, delta0, line):
+	# Split into 3 trapezoids
+	A_trap = Trapezoid(delta0.top, delta0.bot, delta0.leftp, line.p)
+	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
+	C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
+	
+	# Set neighbors
+	A_trap.nw, A_trap.ne, A_trap.sw, A_trap.se = delta0.nw, B_trap, delta0.sw, C_trap
+	B_trap.nw, B_trap.ne, B_trap.sw, B_trap.se = A_trap, delta0.ne, None, None
+	C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, A_trap, delta0.se
+	
+	# Update delta0's neighbor's neighbor-pointers.
+	if delta0.nw is not None:
+		if delta0.nw.se is delta0:
+			delta0.nw.se = A_trap
+		elif delta0.nw.ne is delta0:
+			delta0.nw.ne = A_trap
+		else:
+			raise Exception('Unlinked neighbor!')
+	if delta0.sw is not None:
+		if delta0.sw.ne is delta0:
+			delta0.sw.ne = A_trap
+		elif delta0.sw.se is delta0:
+			delta0.sw.se = A_trap
+		else:
+			raise Exception('Unlinked neighbor!')
+	if delta0.ne is not None:
+		if delta0.ne.sw is delta0:
+			delta0.ne.sw = B_trap
+		elif delta0.ne.nw is delta0:
+			delta0.ne.nw = B_trap
+		else:
+			raise Exception('Unlinked neighbor!')
+	if delta0.se is not None:
+		if delta0.se.nw is delta0:
+			delta0.se.nw = C_trap
+		elif delta0.se.sw is delta0:
+			delta0.se.sw = C_trap
+		else:
+			raise Exception('Unlinked neighbor!')
+	
+	# Update decomposition
+	T.update([A_trap, B_trap, C_trap])
+	
+	# Update search structure
+	A_node = Tree(A_trap)
+	B_node = Tree(B_trap)
+	C_node = Tree(C_trap)
+	s_node = Tree(line, B_node, C_node)
+	p_node = D._find_node(line.p)
+	p_node.content = line.p
+	p_node.left = A_node
+	p_node.right = s_node
 
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
@@ -299,8 +296,7 @@ def construct_trapezoid_decomposition(edges):
 			elif line.p.x == delta0.leftp.x and line.q.x < delta0.rightp.x:
 				handle_one_trapezoid_left_touching(T, D, delta0, line)
 			elif line.p.x > delta0.leftp.x and line.q.x == delta0.rightp.x:
-				T |= H # FIXME
-				T.update([delta0])
+				handle_one_trapezoid_right_touching(T, D, delta0, line)
 			else: # line.p.x = delta0.leftp.x and line.q.x = delta0.rightp.x
 				T |= H # FIXME
 				T.update([delta0])
