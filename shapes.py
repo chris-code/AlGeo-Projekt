@@ -60,6 +60,31 @@ class Trapezoid:
 		self.ident = Trapezoid.class_counter
 		Trapezoid.class_counter += 1
 	
+	def replace_neighbor(self, old, new):
+		#~ for neighbor in [self.nw, self.ne, self.sw, self.se]:
+			#~ if neighbor is old:
+				#~ neighbor = new
+				#~ break
+		#~ else:
+			#~ raise Exception('Unlinked neighbor!')
+		
+		neighbor_found = False
+		if self.nw is old:
+			self.nw = new
+			neighbor_found = True
+		if self.ne is old:
+			self.ne = new
+			neighbor_found = True
+		if self.sw is old:
+			self.sw = new
+			neighbor_found = True
+		if self.se is old:
+			self.se = new
+			neighbor_found = True
+		
+		if not neighbor_found:
+			raise Exception('Unlinked neighbor!')
+	
 	def __str__(self, indent=0, indent_string = '  '):
 		string_representation = indent_string * indent
 		string_representation += 'Tr{0}: Top={1}, Bot={2}, LeftP={3}, RightP={4}'

@@ -21,7 +21,7 @@ class Decomposition(set):
 				deltata.append(deltata[-1].se)
 			else:
 				deltata.append(deltata[-1].ne)
-		return set(deltata)
+		return deltata
 	
 	def __str__(self):
 		string_representation = ''
@@ -125,33 +125,13 @@ def handle_one_trapezoid_completely_inside(T, D, delta0, line):
 	
 	# Update delta0's neighbor's neighbor-pointers.
 	if delta0.nw is not None:
-		if delta0.nw.se is delta0:
-			delta0.nw.se = A_trap
-		elif delta0.nw.ne is delta0:
-			delta0.nw.ne = A_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.nw.replace_neighbor(delta0, A_trap)
 	if delta0.sw is not None:
-		if delta0.sw.ne is delta0:
-			delta0.sw.ne = A_trap
-		elif delta0.sw.se is delta0:
-			delta0.sw.se = A_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.sw.replace_neighbor(delta0, A_trap)
 	if delta0.ne is not None:
-		if delta0.ne.sw is delta0:
-			delta0.ne.sw = D_trap
-		elif delta0.ne.nw is delta0:
-			delta0.ne.nw = D_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.ne.replace_neighbor(delta0, D_trap)
 	if delta0.se is not None:
-		if delta0.se.nw is delta0:
-			delta0.se.nw = D_trap
-		elif delta0.se.sw is delta0:
-			delta0.se.sw = D_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.se.replace_neighbor(delta0, D_trap)
 	
 	# Update decomposition
 	T.update([A_trap, B_trap, C_trap, D_trap])
@@ -181,33 +161,13 @@ def handle_one_trapezoid_left_touching(T, D, delta0, line):
 	
 	# Update delta0's neighbor's neighbor-pointers.
 	if delta0.nw is not None:
-		if delta0.nw.se is delta0:
-			delta0.nw.se = B_trap
-		elif delta0.nw.ne is delta0:
-			delta0.nw.ne = B_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.nw.replace_neighbor(delta0, B_trap)
 	if delta0.sw is not None:
-		if delta0.sw.ne is delta0:
-			delta0.sw.ne = C_trap
-		elif delta0.sw.se is delta0:
-			delta0.sw.se = C_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.sw.replace_neighbor(delta0, C_trap)
 	if delta0.ne is not None:
-		if delta0.ne.sw is delta0:
-			delta0.ne.sw = D_trap
-		elif delta0.ne.nw is delta0:
-			delta0.ne.nw = D_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.ne.replace_neighbor(delta0, D_trap)
 	if delta0.se is not None:
-		if delta0.se.nw is delta0:
-			delta0.se.nw = D_trap
-		elif delta0.se.sw is delta0:
-			delta0.se.sw = D_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.se.replace_neighbor(delta0, D_trap)
 	
 	# Update decomposition
 	T.update([B_trap, C_trap, D_trap])
@@ -235,33 +195,13 @@ def handle_one_trapezoid_right_touching(T, D, delta0, line):
 	
 	# Update delta0's neighbor's neighbor-pointers.
 	if delta0.nw is not None:
-		if delta0.nw.se is delta0:
-			delta0.nw.se = A_trap
-		elif delta0.nw.ne is delta0:
-			delta0.nw.ne = A_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.nw.replace_neighbor(delta0, A_trap)
 	if delta0.sw is not None:
-		if delta0.sw.ne is delta0:
-			delta0.sw.ne = A_trap
-		elif delta0.sw.se is delta0:
-			delta0.sw.se = A_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.sw.replace_neighbor(delta0, A_trap)
 	if delta0.ne is not None:
-		if delta0.ne.sw is delta0:
-			delta0.ne.sw = B_trap
-		elif delta0.ne.nw is delta0:
-			delta0.ne.nw = B_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.ne.replace_neighbor(delta0, B_trap)
 	if delta0.se is not None:
-		if delta0.se.nw is delta0:
-			delta0.se.nw = C_trap
-		elif delta0.se.sw is delta0:
-			delta0.se.sw = C_trap
-		else:
-			raise Exception('Unlinked neighbor!')
+		delta0.se.replace_neighbor(delta0, C_trap)
 	
 	# Update decomposition
 	T.update([A_trap, B_trap, C_trap])
@@ -276,20 +216,34 @@ def handle_one_trapezoid_right_touching(T, D, delta0, line):
 	p_node.left = A_node
 	p_node.right = s_node
 
+#~ TODO what if there are exactly 2 intersected trapezoids?
+def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
+	left_trap = Trapezoid(Delta[0].top, Delta[0].bot, Delta[0].leftp, line.p)
+	
+	upper_trap = Trapezoid(Delta[0].top, line, line.p, Delta[0].rightp)
+	upper_list = [upper_trap]
+	for old_trap in Delta[1:-1]:
+		if old_trap.top is upper_trap.top:
+			upper_trap.rightp = old_trap.rightp
+		else:
+			upper_trap = Trapezoid(old_trap.top, line, old_trap.leftp, old_trap.rightp)
+			upper_list.append(upper_trap)
+			
+
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
 	for line in edges:
-		#~ print('--------------------')
-		#~ print('\nT:\n{0}'.format(T))
-		#~ print('D:\n{0}'.format(D))
-		#~ print('\nAdding line {0}'.format(line))
-		#~ print('--------------------')
+		print('--------------------')
+		print('\nT:\n{0}'.format(T))
+		print('D:\n{0}'.format(D))
+		print('\nAdding line {0}'.format(line))
+		print('--------------------')
 		vis.draw_decomposition(T)
 		H = T.get_intersected_trapezoids(D, line)
-		T -= H
+		T -= set(H)
 		if len(H) == 1:
-			delta0 = H.pop()
+			delta0 = H[0]
 			
 			if line.p.x > delta0.leftp.x and line.q.x < delta0.rightp.x:
 				handle_one_trapezoid_completely_inside(T, D, delta0, line)
@@ -297,11 +251,19 @@ def construct_trapezoid_decomposition(edges):
 				handle_one_trapezoid_left_touching(T, D, delta0, line)
 			elif line.p.x > delta0.leftp.x and line.q.x == delta0.rightp.x:
 				handle_one_trapezoid_right_touching(T, D, delta0, line)
-			else: # line.p.x = delta0.leftp.x and line.q.x = delta0.rightp.x
-				T |= H # FIXME
+			else: # line.p.x == delta0.leftp.x and line.q.x == delta0.rightp.x
+				#~ handle_one_trapezoid_both_touching(T, D, delta0, line)
+				T |= set(H) # TODO
 				T.update([delta0])
 		else:
-			T |= H # FIXME
+			if line.p.x > H[0].leftp.x and line.q.x < H[-1].rightp.x:
+				T |= set(H) # TODO
+			elif line.p.x == H[0].leftp.x and line.q.x < H[-1].rightp.x:
+				T |= set(H) # TODO
+			elif line.p.x > H[0].leftp.x and line.q.x == H[-1].rightp.x:
+				T |= set(H) # TODO
+			else: # line.p.x == H[0].leftp.x and line.q.x == H[-1].rightp.x:
+				T |= set(H) # TODO
 		
 	return T, D
 
