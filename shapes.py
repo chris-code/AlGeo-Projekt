@@ -31,11 +31,11 @@ class Line:
 		self.ident = Line.class_counter
 		Line.class_counter += 1
 	
-	def eval(self, point):
+	def eval(self, x_coord):
 		try:
 			slope = (self.q.y - self.p.y) / (self.q.x - self.p.x)
 			intersect = self.p.y - slope * self.p.x
-			return slope * point + intersect
+			return slope * x_coord + intersect
 		except ZeroDivisionError:
 			return self.p.y
 	

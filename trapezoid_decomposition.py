@@ -252,14 +252,32 @@ def handle_one_trapezoid_both_touching(T, D, delta0, line):
 def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	left_trap = Trapezoid(Delta[0].top, Delta[0].bot, Delta[0].leftp, line.p)
 	
-	# Handle trapezoids above the line
+	# Create first trapezoid above the line
 	upper_trap = Trapezoid(Delta[0].top, line, line.p, Delta[0].rightp)
 	upper_trap.ne = Delta[0].ne # Only for unique x-coordinates
 	if Delta[0].ne is not None:
 		Delta[0].ne.replace_neighbor(Delta[0], upper_trap)
 	upper_list = [upper_trap]
 	
+	# Create first trapezoid below the line
+	lower_trap = Trapezoid(line, Delta[0].bot, line.p, Delta[0].rightp)
+	lower_trap.se = Delta[0].se
+	if Delta[0].se is not None:
+		Delta[0].se.replace_neighbor(Delta[0], lower_trap)
+	lower_list = [lower_trap]
+	
+	# Update D for Delta[0]
+	Left_Trap_node = Tree(left_trap)
+	Upper_Trap_node = Tree(upper_trap)
+	Lower_Trap_node = Tree(lower_trap)
+	Left_Line_node = Tree(line, Upper_Trap_node, Lower_Trap_node)
+	P_node = D._find_node(line.p)
+	P_node.content = line.p
+	P_node.left = Left_Trap_node
+	P_node.right = Left_Line_node
+	
 	for old_trap in Delta[1:-1]:
+		# Handle trapezoids above the line
 		if old_trap.top is upper_list[-1].top:
 			upper_list[-1].rightp = old_trap.rightp
 			upper_list[-1].ne = old_trap.ne
@@ -276,25 +294,9 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 			upper_trap.sw = upper_list[-1]
 			upper_list[-1].se = upper_trap
 			upper_list.append(upper_trap)
-	if upper_list[-1].top is Delta[-1].top:
-		upper_list[-1].rightp = line.q
-	else:
-		upper_trap = Trapezoid(Delta[-1].top, line, Delta[-1], line.q)
-		upper_trap.nw = Delta[-1].nw
-		if Delta[-1].nw is not None:
-			Delta[-1].nw.replace_neighbor(Delta[-1], upper_trap)
-		upper_trap.sw = upper_list[-1]
-		upper_list[-1].se = upper_trap
-		upper_list.append(upper_trap)
-	
-	# Handle trapezoids below the line
-	lower_trap = Trapezoid(line, Delta[0].bot, line.p, Delta[0].rightp)
-	lower_trap.se = Delta[0].se
-	if Delta[0].se is not None:
-		Delta[0].se.replace_neighbor(Delta[0], lower_trap)
-	lower_list = [lower_trap]
-	
-	for old_trap in Delta[1:-1]:
+			Upper_Trap_node = Tree(upper_trap)
+		
+		# Handle trapezoids below the line
 		if old_trap.bot is lower_list[-1].bot:
 			lower_list[-1].rightp = old_trap.rightp
 			lower_list[-1].se = old_trap.se
@@ -311,6 +313,27 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 			lower_trap.nw = lower_list[-1]
 			lower_list[-1].ne = lower_trap
 			lower_list.append(lower_trap)
+			Lower_Trap_node = Tree(lower_trap)
+		
+		point_in_old_trap = Point( (line.p.x + line.q.x)/2, line.eval((line.p.x + line.q.x)/2) )
+		S_node = D._find_node(point_in_old_trap)
+		S_node.content = line
+		S_node.left = Upper_Trap_node
+		S_node.right = Lower_Trap_node
+			
+	# Create last trapezoid above the line
+	if upper_list[-1].top is Delta[-1].top:
+		upper_list[-1].rightp = line.q
+	else:
+		upper_trap = Trapezoid(Delta[-1].top, line, Delta[-1].leftp, line.q)
+		upper_trap.nw = Delta[-1].nw
+		if Delta[-1].nw is not None:
+			Delta[-1].nw.replace_neighbor(Delta[-1], upper_trap)
+		upper_trap.sw = upper_list[-1]
+		upper_list[-1].se = upper_trap
+		upper_list.append(upper_trap)
+	
+	# Create last trapezoid below the line
 	if lower_list[-1].bot is Delta[-1].bot:
 		lower_list[-1].rightp = line.q
 	else:
@@ -323,6 +346,16 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 		lower_list.append(lower_trap)
 	
 	right_trap = Trapezoid(Delta[-1].top, Delta[-1].bot, line.q, Delta[-1].rightp)
+	
+	# Update D for Delta[-1]
+	Right_Trap_node = Tree(right_trap)
+	Upper_Trap_node = Tree(upper_list[-1])
+	Lower_Trap_node = Tree(lower_list[-1])
+	Right_Line_node = Tree(line, Upper_Trap_node, Lower_Trap_node)
+	Q_node = D._find_node(line.q)
+	Q_node.content = line.q
+	Q_node.left = Right_Line_node
+	Q_node.right = Right_Trap_node
 	
 	# Set neighbors of leftmost trapezoid and back-pointers
 	left_trap.nw = Delta[0].nw
@@ -349,6 +382,10 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	lower_list[-1].se = right_trap
 	
 	# TODO add lower_list, upper_list, right_trap, left_trap to T
+	T.add(left_trap)
+	T.add(right_trap)
+	T.update(upper_list)
+	T.update(lower_list)
 
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
