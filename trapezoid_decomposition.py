@@ -679,9 +679,12 @@ def construct_trapezoid_decomposition(edges):
 
 #~ filename = 'data/punktlokalisierung_example'
 filename = 'data/multiple_intersections_completely_inside_example'
+#~ filename = 'data/multiple_intersections_completely_inside_negative_example'
 vertices, edges, queries = readDataset(filename)
+
 #~ vis.draw_scenario(vertices, edges, queries)
 T, D = construct_trapezoid_decomposition(edges)
+vis.draw_decomposition(T, D, queries)
 
 
 
