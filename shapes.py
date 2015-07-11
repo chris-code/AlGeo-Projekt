@@ -68,21 +68,15 @@ class Trapezoid:
 		#~ else:
 			#~ raise Exception('Unlinked neighbor!')
 		
-		neighbor_found = False
 		if self.nw is old:
 			self.nw = new
-			neighbor_found = True
-		if self.ne is old:
+		elif self.ne is old:
 			self.ne = new
-			neighbor_found = True
-		if self.sw is old:
+		elif self.sw is old:
 			self.sw = new
-			neighbor_found = True
-		if self.se is old:
-			self.se = new
-			neighbor_found = True
-		
-		if not neighbor_found:
+		elif self.se is old:
+			self.se = new		
+		else:
 			raise Exception('Unlinked neighbor!')
 	
 	def __str__(self, indent=0, indent_string = '  '):

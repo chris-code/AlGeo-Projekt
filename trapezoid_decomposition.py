@@ -216,30 +216,150 @@ def handle_one_trapezoid_right_touching(T, D, delta0, line):
 	p_node.left = A_node
 	p_node.right = s_node
 
+#~ TODO check das mal, Yannick
+def handle_one_trapezoid_both_touching(T, D, delta0, line):
+	# Split into 4 trapezoids
+	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
+	C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
+	
+	# Set neighbors
+	B_trap.nw, B_trap.ne, B_trap.sw, B_trap.se = delta0.nw, delta0.ne, None, None
+	C_trap.nw, C_trap.ne, C_trap.sw, C_trap.se = None, None, delta0.sw, delta0.se
+	
+	# Update delta0's neighbor's neighbor-pointers.
+	if delta0.nw is not None:
+		delta0.nw.replace_neighbor(delta0, B_trap)
+	if delta0.sw is not None:
+		delta0.sw.replace_neighbor(delta0, C_trap)
+	if delta0.ne is not None:
+		delta0.ne.replace_neighbor(delta0, B_trap)
+	if delta0.se is not None:
+		delta0.se.replace_neighbor(delta0, C_trap)
+	
+	# Update decomposition
+	T.update([B_trap, C_trap])
+	
+	# Update search structure
+	B_node = Tree(B_trap)
+	C_node = Tree(C_trap)
+	inside_point = Point(line.p.x * 0.5 + line.q.x * 0.5, line.p.y * 0.5 + line.q.y * 0.5)
+	s_node = D._find_node(inside_point)
+	s_node.content = line
+	s_node.left = B_node
+	s_node.right = C_node
+
 #~ TODO what if there are exactly 2 intersected trapezoids?
 def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	left_trap = Trapezoid(Delta[0].top, Delta[0].bot, Delta[0].leftp, line.p)
 	
+	# Handle trapezoids above the line
 	upper_trap = Trapezoid(Delta[0].top, line, line.p, Delta[0].rightp)
+	upper_trap.ne = Delta[0].ne # Only for unique x-coordinates
+	if Delta[0].ne is not None:
+		Delta[0].ne.replace_neighbor(Delta[0], upper_trap)
 	upper_list = [upper_trap]
+	
 	for old_trap in Delta[1:-1]:
-		if old_trap.top is upper_trap.top:
-			upper_trap.rightp = old_trap.rightp
+		if old_trap.top is upper_list[-1].top:
+			upper_list[-1].rightp = old_trap.rightp
+			upper_list[-1].ne = old_trap.ne
+			if old_trap.ne is not None:
+				old_trap.ne.replace_neighbor(old_trap, upper_list[-1])
 		else:
 			upper_trap = Trapezoid(old_trap.top, line, old_trap.leftp, old_trap.rightp)
+			upper_trap.nw = old_trap.nw
+			if old_trap.nw is not None:
+				old_trap.nw.replace_neighbor(old_trap, upper_trap)
+			upper_trap.ne = old_trap.ne
+			if old_trap.ne is not None:
+				old_trap.ne.replace_neighbor(old_trap, upper_trap)
+			upper_trap.sw = upper_list[-1]
+			upper_list[-1].se = upper_trap
 			upper_list.append(upper_trap)
-			
+	if upper_list[-1].top is Delta[-1].top:
+		upper_list[-1].rightp = line.q
+	else:
+		upper_trap = Trapezoid(Delta[-1].top, line, Delta[-1], line.q)
+		upper_trap.nw = Delta[-1].nw
+		if Delta[-1].nw is not None:
+			Delta[-1].nw.replace_neighbor(Delta[-1], upper_trap)
+		upper_trap.sw = upper_list[-1]
+		upper_list[-1].se = upper_trap
+		upper_list.append(upper_trap)
+	
+	# Handle trapezoids below the line
+	lower_trap = Trapezoid(line, Delta[0].bot, line.p, Delta[0].rightp)
+	lower_trap.se = Delta[0].se
+	if Delta[0].se is not None:
+		Delta[0].se.replace_neighbor(Delta[0], lower_trap)
+	lower_list = [lower_trap]
+	
+	for old_trap in Delta[1:-1]:
+		if old_trap.bot is lower_list[-1].bot:
+			lower_list[-1].rightp = old_trap.rightp
+			lower_list[-1].se = old_trap.se
+			if old_trap.se is not None:
+				old_trap.se.replace_neighbor(old_trap, lower_list[-1])
+		else:
+			lower_trap = Trapezoid(line, old_trap.bot, old_trap.leftp, old_trap.rightp)
+			lower_trap.sw = old_trap.sw
+			if old_trap.sw is not None:
+				old_trap.sw.replace_neighbor(old_trap, lower_trap)
+			lower_trap.se = old_trap.se
+			if old_trap.se is not None:
+				old_trap.se.replace_neighbor(old_trap, lower_trap)
+			lower_trap.nw = lower_list[-1]
+			lower_list[-1].ne = lower_trap
+			lower_list.append(lower_trap)
+	if lower_list[-1].bot is Delta[-1].bot:
+		lower_list[-1].rightp = line.q
+	else:
+		lower_trap = Trapezoid(line, Delta[-1].bot, Delta[-1].leftp, line.q)
+		lower_trap.sw = Delta[-1].sw
+		if Delta[-1].sw is not None:
+			Delta[-1].sw.replace_neighbor(Delta[-1], lower_trap)
+		lower_trap.nw = lower_list[-1]
+		lower_list[-1].ne = lower_trap
+		lower_list.append(lower_trap)
+	
+	right_trap = Trapezoid(Delta[-1].top, Delta[-1].bot, line.q, Delta[-1].rightp)
+	
+	# Set neighbors of leftmost trapezoid and back-pointers
+	left_trap.nw = Delta[0].nw
+	left_trap.sw = Delta[0].sw
+	if Delta[0].nw is not None:
+		Delta[0].nw.replace_neighbor(Delta[0], left_trap)
+	if Delta[0].sw is not None:
+		Delta[0].sw.replace_neighbor(Delta[0], left_trap)
+	left_trap.ne = upper_list[0]
+	left_trap.se = lower_list[0]
+	upper_list[0].nw = left_trap
+	lower_list[0].sw = left_trap
+	
+	# Set neighbors of rightmost trapezoid and back-pointers
+	right_trap.ne = Delta[-1].ne
+	right_trap.se = Delta[-1].se
+	if Delta[-1].ne is not None:
+		Delta[-1].ne.replace_neighbor(Delta[-1], right_trap)
+	if Delta[-1].se is not None:
+		Delta[-1].se.replace_neighbor(Delta[-1], right_trap)
+	right_trap.nw = upper_list[-1]
+	right_trap.sw = lower_list[-1]
+	upper_list[-1].ne = right_trap
+	lower_list[-1].se = right_trap
+	
+	# TODO add lower_list, upper_list, right_trap, left_trap to T
 
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
 	for line in edges:
-		print('--------------------')
-		print('\nT:\n{0}'.format(T))
-		print('D:\n{0}'.format(D))
-		print('\nAdding line {0}'.format(line))
-		print('--------------------')
-		vis.draw_decomposition(T)
+		#~ print('--------------------')
+		#~ print('\nT:\n{0}'.format(T))
+		#~ print('D:\n{0}'.format(D))
+		#~ print('\nAdding line {0}'.format(line))
+		#~ print('--------------------')
+		#~ vis.draw_decomposition(T)
 		H = T.get_intersected_trapezoids(D, line)
 		T -= set(H)
 		if len(H) == 1:
@@ -252,12 +372,11 @@ def construct_trapezoid_decomposition(edges):
 			elif line.p.x > delta0.leftp.x and line.q.x == delta0.rightp.x:
 				handle_one_trapezoid_right_touching(T, D, delta0, line)
 			else: # line.p.x == delta0.leftp.x and line.q.x == delta0.rightp.x
-				#~ handle_one_trapezoid_both_touching(T, D, delta0, line)
-				T |= set(H) # TODO
-				T.update([delta0])
+				handle_one_trapezoid_both_touching(T, D, delta0, line)
 		else:
 			if line.p.x > H[0].leftp.x and line.q.x < H[-1].rightp.x:
-				T |= set(H) # TODO
+				handle_multiple_trapezoids_completely_inside(T, D, H, line)
+				#~ T |= set(H) # TODO
 			elif line.p.x == H[0].leftp.x and line.q.x < H[-1].rightp.x:
 				T |= set(H) # TODO
 			elif line.p.x > H[0].leftp.x and line.q.x == H[-1].rightp.x:
