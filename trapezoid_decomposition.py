@@ -248,7 +248,6 @@ def handle_one_trapezoid_both_touching(T, D, delta0, line):
 	s_node.left = B_node
 	s_node.right = C_node
 
-#~ TODO what if there are exactly 2 intersected trapezoids?
 def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	left_trap = Trapezoid(Delta[0].top, Delta[0].bot, Delta[0].leftp, line.p)
 	
@@ -315,12 +314,12 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 			lower_list.append(lower_trap)
 			Lower_Trap_node = Tree(lower_trap)
 		
-		point_in_old_trap = Point( (line.p.x + line.q.x)/2, line.eval((line.p.x + line.q.x)/2) )
+		point_in_old_trap = Point( (old_trap.leftp.x + old_trap.rightp.x)/2, line.eval((old_trap.leftp.x + old_trap.rightp.x)/2) )
 		S_node = D._find_node(point_in_old_trap)
 		S_node.content = line
 		S_node.left = Upper_Trap_node
 		S_node.right = Lower_Trap_node
-			
+	
 	# Create last trapezoid above the line
 	if upper_list[-1].top is Delta[-1].top:
 		upper_list[-1].rightp = line.q
@@ -332,6 +331,7 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 		upper_trap.sw = upper_list[-1]
 		upper_list[-1].se = upper_trap
 		upper_list.append(upper_trap)
+		Upper_Trap_node = Tree(upper_trap)
 	
 	# Create last trapezoid below the line
 	if lower_list[-1].bot is Delta[-1].bot:
@@ -344,13 +344,12 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 		lower_trap.nw = lower_list[-1]
 		lower_list[-1].ne = lower_trap
 		lower_list.append(lower_trap)
+		Lower_Trap_node = Tree(lower_trap)
 	
 	right_trap = Trapezoid(Delta[-1].top, Delta[-1].bot, line.q, Delta[-1].rightp)
 	
 	# Update D for Delta[-1]
 	Right_Trap_node = Tree(right_trap)
-	Upper_Trap_node = Tree(upper_list[-1])
-	Lower_Trap_node = Tree(lower_list[-1])
 	Right_Line_node = Tree(line, Upper_Trap_node, Lower_Trap_node)
 	Q_node = D._find_node(line.q)
 	Q_node.content = line.q
@@ -381,7 +380,6 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	upper_list[-1].ne = right_trap
 	lower_list[-1].se = right_trap
 	
-	# TODO add lower_list, upper_list, right_trap, left_trap to T
 	T.add(left_trap)
 	T.add(right_trap)
 	T.update(upper_list)
@@ -389,7 +387,7 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
-	random.shuffle(edges)
+	random.shuffle(edges) # FIXME
 	for line in edges:
 		#~ print('--------------------')
 		#~ print('\nT:\n{0}'.format(T))
@@ -424,6 +422,7 @@ def construct_trapezoid_decomposition(edges):
 	return T, D
 
 filename = 'data/punktlokalisierung_example'
+#~ filename = 'data/multiple_intersections_completely_inside_example'
 vertices, edges, queries = readDataset(filename)
 #~ vis.draw_scenario(vertices, edges, queries)
 T, D = construct_trapezoid_decomposition(edges)
