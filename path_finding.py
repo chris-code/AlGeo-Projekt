@@ -1,3 +1,4 @@
+import collections as col
 from shapes import *
 import trapezoid_decomposition as decomp
 import visualization as vis
@@ -33,6 +34,70 @@ def read_dataset(filename):
 		
 		return obstacle_points, obstacle_lines, queries
 
+def remove_obstructed_space(T, D, valid_point):
+	valid_trapezoid = D.find(valid_point)
+	valid_face_index = valid_trapezoid.face_index
+	
+	invalid_trapezoids = set()
+	for trapezoid in T:
+		if trapezoid.face_index != valid_face_index:
+			invalid_trapezoids.add(trapezoid)
+	T -= invalid_trapezoids
+
+def construct_road_map(T):
+	for trap in T:
+		center_x = (trap.leftp.x + trap.rightp.x)/2
+		center_y = (trap.top.eval(center_x) + trap.bot.eval(center_x))/2
+		trap.center = Point(center_x, center_y)
+		trap.center.neighbors = []
+	
+	for trap in T:
+		connecting_point_x = trap.rightp.x
+		
+		if trap.ne is not None:
+			connecting_point_y = (trap.top.eval(trap.rightp.x) + trap.rightp.y)/2
+			connecting_point = Point(connecting_point_x, connecting_point_y)
+			connecting_point.neighbors = [trap.center, trap.ne.center]
+			trap.center.neighbors.append(connecting_point)
+			trap.ne.center.neighbors.append(connecting_point)
+		if trap.se is not None:
+			connecting_point_y = (trap.bot.eval(trap.rightp.x) + trap.rightp.y)/2
+			connecting_point = Point(connecting_point_x, connecting_point_y)
+			connecting_point.neighbors = [trap.center, trap.se.center]
+			trap.center.neighbors.append(connecting_point)
+			trap.se.center.neighbors.append(connecting_point)
+
+def find_path(T, D, start, end):
+	start_trap = D.find(start)
+	start_node = start_trap.center
+	end_trap = D.find(end)
+	end_node = end_trap.center
+	
+	if start_trap not in T or end_trap not in T:
+		raise Exception('Start or end not in valid region')
+	
+	visited = set([start_node])
+	queue = col.deque([start_node])
+	while len(queue) > 0:
+		node = queue.popleft()
+		visited.add(node)
+		if node is end_node:
+			break
+		else:
+			for neighbor in node.neighbors:
+				if neighbor not in visited:
+					neighbor.pred = node
+					queue.append(neighbor)
+	else:
+		raise Exception('No path found')
+	
+	path = [end_node]
+	#~ while hasattr(path[-1], 'pred'):
+	while path[-1] is not start_node:
+		path.append(path[-1].pred)
+	path.reverse()
+	return path
+
 dataset_filename = 'data/pfadsuche_example'
 obstacle_points, obstacle_lines, queries = read_dataset(dataset_filename)
 
@@ -40,7 +105,32 @@ obstacle_points_flat = [point for sublist in obstacle_points for point in sublis
 obstacle_lines_flat = [line for sublist in obstacle_lines for line in sublist]
 
 T, D = decomp.construct_trapezoid_decomposition(obstacle_lines_flat)
-print(T)
-vis.draw_decomposition(T)
+#~ vis.draw_decomposition(T)
+decomp.assign_faces(T)
+
+# Using first query point as cue what the valid face is
+remove_obstructed_space(T, D, queries[0][0])
+construct_road_map(T)
+
+for query in queries:
+	path = find_path(T, D, query[0], query[1])
+	for node in path:
+		print('{0} '.format(node), end='')
+	print()
+
+#~ points = []
+#~ lines = []
+#~ for trap in T:
+	#~ points.append(trap.center)
+	#~ for neighbor in trap.center.neighbors:
+		#~ points.append(neighbor)
+		#~ lines.append(Line(trap.center, neighbor))
+#~ vis.draw_scenario(points + obstacle_points_flat, lines + obstacle_lines_flat, [])
 
 #~ vis.draw_scenario(obstacle_points_flat, obstacle_lines_flat, [])
+
+
+
+
+
+
