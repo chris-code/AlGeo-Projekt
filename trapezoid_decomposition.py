@@ -218,7 +218,7 @@ def handle_one_trapezoid_right_touching(T, D, delta0, line):
 
 #~ TODO check das mal, Yannick
 def handle_one_trapezoid_both_touching(T, D, delta0, line):
-	# Split into 4 trapezoids
+	# Split into 2 trapezoids
 	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
 	C_trap = Trapezoid(line, delta0.bot, line.p, line.q)
 	
@@ -629,7 +629,7 @@ def handle_multiple_trapezoids_right_touching(T, D, Delta, line):
 	upper_list[0].nw = left_trap
 	lower_list[0].sw = left_trap
 	
-	# Set neighbors of rightmost trapezoid and back-pointers
+	# Set neighbors of rightmost trapezoids and back-pointers
 	upper_list[-1].ne = Delta[-1].ne
 	if Delta[-1].ne is not None:
 		Delta[-1].ne.replace_neighbor(Delta[-1], upper_list[-1])
@@ -638,6 +638,125 @@ def handle_multiple_trapezoids_right_touching(T, D, Delta, line):
 		Delta[-1].se.replace_neighbor(Delta[-1], lower_list[-1])
 	
 	T.add(left_trap)
+	T.update(upper_list)
+	T.update(lower_list)
+
+def handle_multiple_trapezoids_both_touching(T, D, Delta, line):
+	# Create first trapezoid above the line
+	upper_trap = Trapezoid(Delta[0].top, line, line.p, Delta[0].rightp)
+	upper_trap.nw = Delta[0].nw
+	if Delta[0].nw is not None:
+		Delta[0].nw.replace_neighbor(Delta[0], upper_trap)
+	upper_trap.ne = Delta[0].ne # Only for unique x-coordinates
+	if Delta[0].ne is not None:
+		Delta[0].ne.replace_neighbor(Delta[0], upper_trap)
+	upper_list = [upper_trap]
+	
+	# Create first trapezoid below the line
+	lower_trap = Trapezoid(line, Delta[0].bot, line.p, Delta[0].rightp)
+	lower_trap.sw = Delta[0].sw
+	if Delta[0].sw is not None:
+		Delta[0].sw.replace_neighbor(Delta[0], lower_trap)
+	lower_trap.se = Delta[0].se
+	if Delta[0].se is not None:
+		Delta[0].se.replace_neighbor(Delta[0], lower_trap)
+	lower_list = [lower_trap]
+	
+	# Update D for Delta[0]
+	Upper_Trap_node = Tree(upper_trap)
+	Lower_Trap_node = Tree(lower_trap)
+	search_point = Point( (Delta[0].leftp.x + Delta[0].rightp.x)/2, line.eval( (Delta[0].leftp.x + Delta[0].rightp.x)/2 ) )
+	S_node = D._find_node(search_point)
+	S_node.content = line
+	S_node.left = Upper_Trap_node
+	S_node.right = Lower_Trap_node
+	
+	for old_trap in Delta[1:-1]:
+		# Handle trapezoids above the line
+		if old_trap.top is upper_list[-1].top:
+			upper_list[-1].rightp = old_trap.rightp
+			upper_list[-1].ne = old_trap.ne
+			if old_trap.ne is not None:
+				old_trap.ne.replace_neighbor(old_trap, upper_list[-1])
+		else:
+			upper_trap = Trapezoid(old_trap.top, line, old_trap.leftp, old_trap.rightp)
+			upper_trap.nw = old_trap.nw
+			if old_trap.nw is not None:
+				old_trap.nw.replace_neighbor(old_trap, upper_trap)
+			upper_trap.ne = old_trap.ne
+			if old_trap.ne is not None:
+				old_trap.ne.replace_neighbor(old_trap, upper_trap)
+			upper_trap.sw = upper_list[-1]
+			upper_list[-1].se = upper_trap
+			upper_list.append(upper_trap)
+			Upper_Trap_node = Tree(upper_trap)
+		
+		# Handle trapezoids below the line
+		if old_trap.bot is lower_list[-1].bot:
+			lower_list[-1].rightp = old_trap.rightp
+			lower_list[-1].se = old_trap.se
+			if old_trap.se is not None:
+				old_trap.se.replace_neighbor(old_trap, lower_list[-1])
+		else:
+			lower_trap = Trapezoid(line, old_trap.bot, old_trap.leftp, old_trap.rightp)
+			lower_trap.sw = old_trap.sw
+			if old_trap.sw is not None:
+				old_trap.sw.replace_neighbor(old_trap, lower_trap)
+			lower_trap.se = old_trap.se
+			if old_trap.se is not None:
+				old_trap.se.replace_neighbor(old_trap, lower_trap)
+			lower_trap.nw = lower_list[-1]
+			lower_list[-1].ne = lower_trap
+			lower_list.append(lower_trap)
+			Lower_Trap_node = Tree(lower_trap)
+		
+		point_in_old_trap = Point( (old_trap.leftp.x + old_trap.rightp.x)/2, line.eval((old_trap.leftp.x + old_trap.rightp.x)/2) )
+		S_node = D._find_node(point_in_old_trap)
+		S_node.content = line
+		S_node.left = Upper_Trap_node
+		S_node.right = Lower_Trap_node
+	
+	# Create last trapezoid above the line
+	if upper_list[-1].top is Delta[-1].top:
+		upper_list[-1].rightp = line.q
+	else:
+		upper_trap = Trapezoid(Delta[-1].top, line, Delta[-1].leftp, line.q)
+		upper_trap.nw = Delta[-1].nw
+		if Delta[-1].nw is not None:
+			Delta[-1].nw.replace_neighbor(Delta[-1], upper_trap)
+		upper_trap.sw = upper_list[-1]
+		upper_list[-1].se = upper_trap
+		upper_list.append(upper_trap)
+		Upper_Trap_node = Tree(upper_trap)
+	
+	# Create last trapezoid below the line
+	if lower_list[-1].bot is Delta[-1].bot:
+		lower_list[-1].rightp = line.q
+	else:
+		lower_trap = Trapezoid(line, Delta[-1].bot, Delta[-1].leftp, line.q)
+		lower_trap.sw = Delta[-1].sw
+		if Delta[-1].sw is not None:
+			Delta[-1].sw.replace_neighbor(Delta[-1], lower_trap)
+		lower_trap.nw = lower_list[-1]
+		lower_list[-1].ne = lower_trap
+		lower_list.append(lower_trap)
+		Lower_Trap_node = Tree(lower_trap)
+	
+	# Update D for Delta[-1]
+	search_point = Point( (Delta[-1].leftp.x + Delta[-1].rightp.x)/2, line.eval((Delta[-1].leftp.x + Delta[-1].rightp.x)/2) )
+	S_node = D._find_node(search_point)
+	S_node.content = line
+	S_node.left = Upper_Trap_node
+	S_node.right = Lower_Trap_node
+	
+	# Setneighbors of rightmost trapezoids and back-pointers
+	upper_list[-1].ne = Delta[-1].ne
+	if Delta[-1].ne is not None:
+		Delta[-1].ne.replace_neighbor(Delta[-1], upper_list[-1])
+	lower_list[-1].se = Delta[-1].se
+	if Delta[-1].se is not None:
+		Delta[-1].se.replace_neighbor(Delta[-1], lower_list[-1])
+	
 	T.update(upper_list)
 	T.update(lower_list)
 
@@ -671,20 +790,20 @@ def construct_trapezoid_decomposition(edges):
 				handle_multiple_trapezoids_left_touching(T, D, H, line)
 			elif line.p.x > H[0].leftp.x and line.q.x == H[-1].rightp.x:
 				handle_multiple_trapezoids_right_touching(T, D, H, line)
-				#~ T |= set(H) # TODO
 			else: # line.p.x == H[0].leftp.x and line.q.x == H[-1].rightp.x:
-				T |= set(H) # TODO
+				handle_multiple_trapezoids_both_touching(T, D, H, line)
+				#~ T |= set(H) # TODO
 		
 	return T, D
 
-#~ filename = 'data/punktlokalisierung_example'
-filename = 'data/multiple_intersections_completely_inside_example'
+filename = 'data/punktlokalisierung_example'
+#~ filename = 'data/multiple_intersections_completely_inside_example'
 #~ filename = 'data/multiple_intersections_completely_inside_negative_example'
 vertices, edges, queries = readDataset(filename)
 
 #~ vis.draw_scenario(vertices, edges, queries)
 T, D = construct_trapezoid_decomposition(edges)
-vis.draw_decomposition(T, D, queries)
+#~ vis.draw_decomposition(T, D, queries)
 
 
 
