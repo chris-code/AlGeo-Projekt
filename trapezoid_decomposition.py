@@ -760,6 +760,25 @@ def handle_multiple_trapezoids_both_touching(T, D, Delta, line):
 	T.update(upper_list)
 	T.update(lower_list)
 
+def assign_face(trapezoid, face_index):
+	if trapezoid is not None:
+		if not hasattr(trapezoid, 'face_index'):
+			trapezoid.face_index = face_index
+			
+			assign_face(trapezoid.nw, face_index)
+			assign_face(trapezoid.ne, face_index)
+			assign_face(trapezoid.sw, face_index)
+			assign_face(trapezoid.se, face_index)
+			
+			return True
+	return False
+
+def assign_faces(T):
+	face_index = 0
+	for trapezoid in T:
+		if assign_face(trapezoid, face_index):
+			face_index += 1
+
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges) # FIXME
@@ -792,7 +811,6 @@ def construct_trapezoid_decomposition(edges):
 				handle_multiple_trapezoids_right_touching(T, D, H, line)
 			else: # line.p.x == H[0].leftp.x and line.q.x == H[-1].rightp.x:
 				handle_multiple_trapezoids_both_touching(T, D, H, line)
-				#~ T |= set(H) # TODO
 		
 	return T, D
 
@@ -803,6 +821,7 @@ vertices, edges, queries = readDataset(filename)
 
 #~ vis.draw_scenario(vertices, edges, queries)
 T, D = construct_trapezoid_decomposition(edges)
+assign_faces(T)
 #~ vis.draw_decomposition(T, D, queries)
 
 
