@@ -795,6 +795,7 @@ def construct_trapezoid_decomposition(edges):
 		#~ print('\nAdding line {0}'.format(line))
 		#~ print('--------------------')
 		#~ vis.draw_decomposition(T)
+		#~ vis.show_surface()
 		H = T.get_intersected_trapezoids(D, line)
 		T -= set(H)
 		if len(H) == 1:
@@ -834,23 +835,26 @@ def group_points(D, queries):
 	
 	return list(groups.values())
 
-#~ dataset_filename = 'data/punktlokalisierung_example'
-#~ #dataset_filename = 'data/multiple_intersections_completely_inside_example'
-#~ vertices, edges, queries = read_dataset(dataset_filename)
-#~ 
-#~ surface = vis.make_surface()
-#~ vis.draw_scenario(surface, vertices, edges, queries)
-#~ vis.show_surface(surface)
-#~ T, D = construct_trapezoid_decomposition(edges)
-#~ assign_faces(T)
-#~ groups = group_points(D, queries)
-#~ surface = vis.make_surface()
-#~ vis.draw_decomposition(surface, T, D, queries)
-#~ vis.show_surface(surface)
-#~ 
-#~ result_filename = 'result'
-#~ write_result(result_filename, groups)
+def main():
+	dataset_filename = 'data/punktlokalisierung_example'
+	#dataset_filename = 'data/multiple_intersections_completely_inside_example'
+	vertices, edges, queries = read_dataset(dataset_filename)
 
+	vis.draw_scenario(vertices, edges, queries)
+	vis.show_surface()
+
+	T, D = construct_trapezoid_decomposition(edges)
+	assign_faces(T)
+	groups = group_points(D, queries)
+
+	vis.draw_decomposition(T, D, queries)
+	vis.show_surface()
+
+	result_filename = 'result'
+	write_result(result_filename, groups)
+
+if __name__ == '__main__':
+	main()
 
 
 

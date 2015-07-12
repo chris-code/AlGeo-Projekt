@@ -91,47 +91,45 @@ def find_path(T, D, start, end):
 	else:
 		raise Exception('No path found')
 	
+	# Backtrace path
 	path = [end_node]
 	#~ while hasattr(path[-1], 'pred'):
 	while path[-1] is not start_node:
 		path.append(path[-1].pred)
 	path.reverse()
+	
+	# Add nodes for real start and end position
+	path.insert(0, start)
+	path.append(end)
+	
 	return path
 
-dataset_filename = 'data/pfadsuche_example'
-obstacle_points, obstacle_lines, queries = read_dataset(dataset_filename)
+def main():
+	dataset_filename = 'data/pfadsuche_example'
+	obstacle_points, obstacle_lines, queries = read_dataset(dataset_filename)
 
-obstacle_points_flat = [point for sublist in obstacle_points for point in sublist]
-obstacle_lines_flat = [line for sublist in obstacle_lines for line in sublist]
+	obstacle_points_flat = [point for sublist in obstacle_points for point in sublist]
+	obstacle_lines_flat = [line for sublist in obstacle_lines for line in sublist]
 
-T, D = decomp.construct_trapezoid_decomposition(obstacle_lines_flat)
-#~ vis.draw_decomposition(T)
-decomp.assign_faces(T)
+	T, D = decomp.construct_trapezoid_decomposition(obstacle_lines_flat)
+	#~ vis.draw_decomposition(T)
+	decomp.assign_faces(T)
 
-# Using first query point as cue what the valid face is
-remove_obstructed_space(T, D, queries[0][0])
-construct_road_map(T)
+	# Using first query point as cue what the valid face is
+	remove_obstructed_space(T, D, queries[0][0])
+	construct_road_map(T)
 
-for query in queries:
-	path = find_path(T, D, query[0], query[1])
-	for node in path:
-		print('{0} '.format(node), end='')
-	print()
+	paths = []
+	for query in queries:
+		paths.append( find_path(T, D, query[0], query[1]) )
 
-points = []
-lines = []
-for trap in T:
-	points.append(trap.center)
-	for neighbor in trap.center.neighbors:
-		points.append(neighbor)
-		lines.append(Line(trap.center, neighbor))
-#~ surface = vis.make_surface()
-#~ vis.draw_scenario(surface, points + obstacle_points_flat, lines + obstacle_lines_flat, [])
-#~ vis.show_surface(surface)
+	#~ vis.draw_scenario(obstacle_points_flat, obstacle_lines_flat, [])
+	vis.draw_road_map(T)
+	#~ vis.draw_path(paths[0])
+	vis.show_surface()
 
-surface = vis.make_surface()
-vis.draw_scenario(surface, obstacle_points_flat, obstacle_lines_flat, [])
-vis.show_surface(surface)
+if __name__ == '__main__':
+	main()
 
 
 
