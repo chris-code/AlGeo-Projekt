@@ -67,7 +67,7 @@ class Tree:
 			string_representation += self.right.__str__(indent+1)
 		return string_representation
 
-def readDataset(filename):
+def read_dataset(filename):
 	with open(filename, 'r') as f:
 		n, m, l = f.readline().strip().split()
 		n, m, l = int(n), int(m), int(l)
@@ -88,6 +88,13 @@ def readDataset(filename):
 			queries.append( Point(int(x), int(y)) )
 			
 		return vertices, edges, queries
+
+def write_result(filename, groups):
+	with open(filename, 'w') as f:
+		for group in groups:
+			for point in group:
+				f.write('{0} '.format(point + 1))
+			f.write('\n')
 
 def initialize(edges):
 	left_limit = min(edges[0].p.x, edges[0].q.x)
@@ -814,15 +821,32 @@ def construct_trapezoid_decomposition(edges):
 		
 	return T, D
 
-filename = 'data/punktlokalisierung_example'
-#~ filename = 'data/multiple_intersections_completely_inside_example'
-#~ filename = 'data/multiple_intersections_completely_inside_negative_example'
-vertices, edges, queries = readDataset(filename)
+def group_points(D, queries):
+	groups = {}
+	
+	for query in queries:
+		trapezoid = D.find(query)
+		face = trapezoid.face_index
+		
+		if face not in groups:
+			groups[face] = [queries.index(query)]
+		else:
+			groups[face].append(queries.index(query))
+	
+	return list(groups.values())
+
+dataset_filename = 'data/punktlokalisierung_example'
+#~ dataset_filename = 'data/multiple_intersections_completely_inside_example'
+vertices, edges, queries = read_dataset(dataset_filename)
 
 #~ vis.draw_scenario(vertices, edges, queries)
 T, D = construct_trapezoid_decomposition(edges)
 assign_faces(T)
+groups = group_points(D, queries)
 #~ vis.draw_decomposition(T, D, queries)
+
+result_filename = 'result'
+write_result(result_filename, groups)
 
 
 
