@@ -5,59 +5,60 @@ canvasSizeX = 400
 canvasSizeY = 400
 colors = ['blue', 'red', 'green', 'yellow', 'cyan', 'magenta']
 
-def _get_limits(points):
-	min_x, max_x, min_y, max_y = 1000, -1000, 1000, -1000
-	for point in points:
-		min_x = min(min_x, point.x)
-		max_x = max(max_x, point.x)
-		min_y = min(min_y, point.y)
-		max_y = max(max_y, point.y)
-	return min_x, max_x, min_y, max_y
+def make_surface():
+	window = tk.Tk()
+	window.resizable(tk.FALSE, tk.FALSE)
+	canv = tk.Canvas(window, width = canvasSizeX, height = canvasSizeY)
+	canv.pack()
+	
+	return window, canv
 
-def draw_point(canv, point, scaling, offset, color='black'):
-	x = scaling * point.x + offset
-	y = canvasSizeY - (scaling * point.y + offset)
-	canv.create_oval(x-4, y-4, x+4, y+4, fill=color)
+def show_surface(surface):
+	window, canv = surface
+	
+	min_x, max_x, min_y, max_y = 100000, -1000000, 100000, -100000
+	for ident in canv.find_all():
+		x1, y1, x2, y2 = canv.coords(ident)
+		min_x = min(min_x, x1, x2)
+		max_x = max(max_x, x1, x2)
+		min_y = min(min_y, y1, y2)
+		max_y = max(max_y, y1, y2)
+	border = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
+	scaling = (min(canvasSizeX, canvasSizeY) - 2 * border) / max(max_x - min_x, max_y - min_y)
+	for ident in canv.find_all():
+		canv.scale(ident, 0, 0, scaling, scaling)
+		canv.move(ident, -min_x * scaling + border, -min_y * scaling + border)
+	window.mainloop()
 
-def draw_line(canv, p, q, scaling, offset, color='black'):
-	px = scaling * p.x + offset
-	py = canvasSizeY - (scaling * p.y + offset)
-	qx = scaling * q.x + offset
-	qy = canvasSizeY - (scaling * q.y + offset)
+def draw_point(canv, point, color='black'):
+	x = point.x
+	y = canvasSizeY - point.y
+	canv.create_oval(x-0.2, y-0.2, x+0.2, y+0.2, fill=color)
+
+def draw_line(canv, p, q, color='black'):
+	px = p.x
+	py = canvasSizeY - p.y
+	qx = q.x
+	qy = canvasSizeY - q.y
 	canv.create_line(px, py, qx, qy, width = 2, fill=color)
 
-#~ TODO draw_trapezoid method
-def draw_trapezoid(canv, top, bot, leftp, rightp, scaling, offset, color='black'):
+def draw_trapezoid(canv, top, bot, leftp, rightp, color='black'):
 	nw = Point(leftp.x, top.eval(leftp.x))
 	ne = Point(rightp.x, top.eval(rightp.x))
 	sw = Point(leftp.x, bot.eval(leftp.x))
 	se = Point(rightp.x, bot.eval(rightp.x))
 	
-	draw_line(canv, nw, ne, scaling, offset, color=color)
-	draw_line(canv, ne, se, scaling, offset, color=color)
-	draw_line(canv, se, sw, scaling, offset, color=color)
-	draw_line(canv, sw, nw, scaling, offset, color=color)
+	draw_line(canv, nw, ne, color=color)
+	draw_line(canv, ne, se, color=color)
+	draw_line(canv, se, sw, color=color)
+	draw_line(canv, sw, nw, color=color)
 
-def draw_decomposition(T, D=None, queries=[]):
-	root = tk.Tk()
-	root.resizable(tk.FALSE, tk.FALSE)
-	canv = tk.Canvas(root, width=canvasSizeX, height=canvasSizeY)
-	canv.pack()
-	
-	points = [trapezoid.top.p for trapezoid in T]
-	points += [trapezoid.top.q for trapezoid in T]
-	points += [trapezoid.bot.p for trapezoid in T]
-	points += [trapezoid.bot.q for trapezoid in T]
-	min_x, max_x, min_y, max_y = _get_limits(points)
-	offset = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
-	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(max_x - min_x, max_y - min_y)
-	offset -= scaling * min(min_x, min_y)
+def draw_decomposition(surface, T, D=None, queries=[]):
+	window, canv = surface
+	#~ window, canv = make_surface()
 	
 	for trapezoid in T:
-		draw_trapezoid(canv, trapezoid.top, trapezoid.bot, trapezoid.leftp, trapezoid.rightp, scaling, offset)
-		#~ FIXME this is to test that there are no 0-width trapezoids left
-		#~ Remove once this is achieved
-		#~ print('Width={0}'.format(trapezoid.rightp.x - trapezoid.leftp.x))
+		draw_trapezoid(canv, trapezoid.top, trapezoid.bot, trapezoid.leftp, trapezoid.rightp)
 	
 	for index, q in enumerate(queries):
 		trap = D.find(q)
@@ -69,30 +70,23 @@ def draw_decomposition(T, D=None, queries=[]):
 		
 		if not hasattr(trap, 'color'):
 			trap.color = colors[index % len(colors)]
-		draw_trapezoid(canv, top, bot, leftp, rightp, scaling, offset, color=trap.color)
-		draw_point(canv, q, scaling, offset, color=trap.color)
+		draw_trapezoid(canv, top, bot, leftp, rightp, color=trap.color)
+		draw_point(canv, q, color=trap.color)
 	
-	root.mainloop()
+	#~ show_surface(window, canv)
 
-def draw_scenario(vertices, edges, queries):
-	min_x, max_x, min_y, max_y = _get_limits(vertices + queries)
-	offset = max(canvasSizeX, canvasSizeY) / 8 # Min. distance to borders
-	scaling = (min(canvasSizeX, canvasSizeY) - 2 * offset) / max(max_x - min_x, max_y - min_y)
-	offset -= scaling * min(min_x, min_y)
+def draw_scenario(surface, vertices, edges, queries):
+	window, canv = surface
+	#~ window, canv = make_surface()
 	
-	root = tk.Tk()
-	root.resizable(tk.FALSE, tk.FALSE)
-
-	canv = tk.Canvas(root, width = canvasSizeX, height = canvasSizeY)
-	canv.pack()
 	for vertex in vertices:
-		draw_point(canv, vertex, scaling, offset)
+		draw_point(canv, vertex)
 	for edge in edges:
-		draw_line(canv, edge.p, edge.q, scaling, offset)
+		draw_line(canv, edge.p, edge.q)
 	for query in queries:
-		draw_point(canv, query, scaling, offset, color='blue')
-		
-	root.mainloop()
+		draw_point(canv, query, color='blue')
+	
+	#~ show_surface(window, canv)
 
 
 

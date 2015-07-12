@@ -834,18 +834,22 @@ def group_points(D, queries):
 	
 	return list(groups.values())
 
-dataset_filename = 'data/punktlokalisierung_example'
-#~ dataset_filename = 'data/multiple_intersections_completely_inside_example'
-vertices, edges, queries = read_dataset(dataset_filename)
-
-#~ vis.draw_scenario(vertices, edges, queries)
-T, D = construct_trapezoid_decomposition(edges)
-assign_faces(T)
-groups = group_points(D, queries)
-#~ vis.draw_decomposition(T, D, queries)
-
-result_filename = 'result'
-write_result(result_filename, groups)
+#~ dataset_filename = 'data/punktlokalisierung_example'
+#~ #dataset_filename = 'data/multiple_intersections_completely_inside_example'
+#~ vertices, edges, queries = read_dataset(dataset_filename)
+#~ 
+#~ surface = vis.make_surface()
+#~ vis.draw_scenario(surface, vertices, edges, queries)
+#~ vis.show_surface(surface)
+#~ T, D = construct_trapezoid_decomposition(edges)
+#~ assign_faces(T)
+#~ groups = group_points(D, queries)
+#~ surface = vis.make_surface()
+#~ vis.draw_decomposition(surface, T, D, queries)
+#~ vis.show_surface(surface)
+#~ 
+#~ result_filename = 'result'
+#~ write_result(result_filename, groups)
 
 
 

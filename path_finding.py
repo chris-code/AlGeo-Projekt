@@ -118,16 +118,20 @@ for query in queries:
 		print('{0} '.format(node), end='')
 	print()
 
-#~ points = []
-#~ lines = []
-#~ for trap in T:
-	#~ points.append(trap.center)
-	#~ for neighbor in trap.center.neighbors:
-		#~ points.append(neighbor)
-		#~ lines.append(Line(trap.center, neighbor))
-#~ vis.draw_scenario(points + obstacle_points_flat, lines + obstacle_lines_flat, [])
+points = []
+lines = []
+for trap in T:
+	points.append(trap.center)
+	for neighbor in trap.center.neighbors:
+		points.append(neighbor)
+		lines.append(Line(trap.center, neighbor))
+#~ surface = vis.make_surface()
+#~ vis.draw_scenario(surface, points + obstacle_points_flat, lines + obstacle_lines_flat, [])
+#~ vis.show_surface(surface)
 
-#~ vis.draw_scenario(obstacle_points_flat, obstacle_lines_flat, [])
+surface = vis.make_surface()
+vis.draw_scenario(surface, obstacle_points_flat, obstacle_lines_flat, [])
+vis.show_surface(surface)
 
 
 
