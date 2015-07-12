@@ -2,6 +2,9 @@
 #~ Mehr Daten generieren
 #~ Kommentieren
 
+import sys
+sys.setrecursionlimit(100000)
+
 import random
 from shapes import *
 import visualization as vis
@@ -41,6 +44,22 @@ class Tree:
 		return self._find_node(point).content
 	
 	def _find_node(self, point):
+		#~ node = self
+		#~ while not isinstance(node.content, Trapezoid):
+			#~ if isinstance(node.content, Line):
+				#~ if point.is_above(node.content):
+					#~ node = node.left
+				#~ else:
+					#~ node = node.right
+			#~ elif isinstance(node.content, Point):
+				#~ if point.is_left_of(node.content):
+					#~ node = node.left
+				#~ else:
+					#~ node = node.right
+			#~ else:
+				#~ raise Exception('Nope.')
+		#~ return node
+		
 		if isinstance(self.content, Trapezoid):
 			return self
 		elif isinstance(self.content, Line):
@@ -221,7 +240,6 @@ def handle_one_trapezoid_right_touching(T, D, delta0, line):
 	p_node.left = A_node
 	p_node.right = s_node
 
-#~ TODO check das mal, Yannick
 def handle_one_trapezoid_both_touching(T, D, delta0, line):
 	# Split into 2 trapezoids
 	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
@@ -837,20 +855,21 @@ def group_points(D, queries):
 
 def main():
 	dataset_filename = 'data/punktlokalisierung_example'
-	#dataset_filename = 'data/multiple_intersections_completely_inside_example'
+	#~ dataset_filename = 'data/multiple_intersections_completely_inside_example'
 	vertices, edges, queries = read_dataset(dataset_filename)
 
-	vis.draw_scenario(vertices, edges, queries)
-	vis.show_surface()
+	#~ vis.draw_scenario(vertices, edges, queries)
+	#~ vis.show_surface()
 
 	T, D = construct_trapezoid_decomposition(edges)
 	assign_faces(T)
 	groups = group_points(D, queries)
 
-	vis.draw_decomposition(T, D, queries)
-	vis.show_surface()
+	#~ vis.draw_decomposition(T, D, queries)
+	#~ vis.draw_decomposition(T, D, [])
+	#~ vis.show_surface()
 
-	result_filename = 'result'
+	result_filename = 'result/point_location_result'
 	write_result(result_filename, groups)
 
 if __name__ == '__main__':

@@ -34,6 +34,13 @@ def read_dataset(filename):
 		
 		return obstacle_points, obstacle_lines, queries
 
+def write_result(filename, paths):
+	with open(filename, 'w') as f:
+		for path in paths:
+			f.write('{0}\n'.format(len(path)))
+			for point in path:
+				f.write('{0} {1}\n'.format(point.x, point.y))
+
 def remove_obstructed_space(T, D, valid_point):
 	valid_trapezoid = D.find(valid_point)
 	valid_face_index = valid_trapezoid.face_index
@@ -112,7 +119,6 @@ def main():
 	obstacle_lines_flat = [line for sublist in obstacle_lines for line in sublist]
 
 	T, D = decomp.construct_trapezoid_decomposition(obstacle_lines_flat)
-	#~ vis.draw_decomposition(T)
 	decomp.assign_faces(T)
 
 	# Using first query point as cue what the valid face is
@@ -123,10 +129,14 @@ def main():
 	for query in queries:
 		paths.append( find_path(T, D, query[0], query[1]) )
 
-	#~ vis.draw_scenario(obstacle_points_flat, obstacle_lines_flat, [])
-	vis.draw_road_map(T)
-	#~ vis.draw_path(paths[0])
-	vis.show_surface()
+	#~ vis.draw_decomposition(T)
+	#~ vis.draw_road_map(T)
+	#~ for path in paths:
+		#~ vis.draw_path(path)
+	#~ vis.show_surface()
+	
+	result_filename = 'result/path_finding_result'
+	write_result(result_filename, paths)
 
 if __name__ == '__main__':
 	main()

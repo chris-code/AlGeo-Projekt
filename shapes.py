@@ -1,3 +1,5 @@
+#FIXME remove object id counters
+
 class Point:
 	class_counter = 0
 	def __init__(self, x, y):
@@ -15,7 +17,8 @@ class Point:
 	
 	def is_above(self, line):
 		# Sarrus scheme
-		det = line.q.x * self.y + line.p.x * line.q.y + line.p.y * self.x - line.p.y * line.q.x - line.q.y * self.x - self.y * line.p.x
+		det = line.q.x * self.y + line.p.x * line.q.y + line.p.y * self.x
+		det -= line.p.y * line.q.x + line.q.y * self.x + self.y * line.p.x
 		return det > 0
 	
 	def __str__(self, indent=0, indent_string = '  '):
@@ -61,13 +64,6 @@ class Trapezoid:
 		Trapezoid.class_counter += 1
 	
 	def replace_neighbor(self, old, new):
-		#~ for neighbor in [self.nw, self.ne, self.sw, self.se]:
-			#~ if neighbor is old:
-				#~ neighbor = new
-				#~ break
-		#~ else:
-			#~ raise Exception('Unlinked neighbor!')
-		
 		if self.nw is old:
 			self.nw = new
 		elif self.ne is old:
