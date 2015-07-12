@@ -1,7 +1,5 @@
 #~ TODO:
 #~ Mehr Daten generieren
-#~ Möglichkeit finden, Punkte Facetten zuzuordnen
-#~ Überlegen, wie das mit |delta| > 1 funktioniert
 #~ Kommentieren
 
 import random
@@ -786,6 +784,7 @@ def assign_faces(T):
 		if assign_face(trapezoid, face_index):
 			face_index += 1
 
+# Assumes that for every line pq it holds: p is left of q
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges) # FIXME
