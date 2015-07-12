@@ -3,6 +3,7 @@ from shapes import *
 
 canvasSizeX = 400
 canvasSizeY = 400
+colors = ['blue', 'red', 'green', 'yellow', 'cyan', 'magenta']
 
 def _get_limits(points):
 	min_x, max_x, min_y, max_y = 1000, -1000, 1000, -1000
@@ -58,10 +59,18 @@ def draw_decomposition(T, D=None, queries=[]):
 		#~ Remove once this is achieved
 		#~ print('Width={0}'.format(trapezoid.rightp.x - trapezoid.leftp.x))
 	
-	for q in queries:
-		trapezoid = D.find(q)
-		draw_trapezoid(canv, trapezoid.top, trapezoid.bot, trapezoid.leftp, trapezoid.rightp, scaling, offset, color='blue')
-		draw_point(canv, q, scaling, offset, color='blue')
+	for index, q in enumerate(queries):
+		trap = D.find(q)
+		shrinkage = 0.1
+		top = Line(Point(trap.top.p.x, trap.top.p.y - shrinkage), Point(trap.top.q.x, trap.top.q.y - shrinkage))
+		bot = Line(Point(trap.bot.p.x, trap.bot.p.y+0.1), Point(trap.bot.q.x, trap.bot.q.y + shrinkage))
+		leftp = Point(trap.leftp.x+0.1, trap.leftp.y)
+		rightp = Point(trap.rightp.x-0.1, trap.rightp.y)
+		
+		if not hasattr(trap, 'color'):
+			trap.color = colors[index % len(colors)]
+		draw_trapezoid(canv, top, bot, leftp, rightp, scaling, offset, color=trap.color)
+		draw_point(canv, q, scaling, offset, color=trap.color)
 	
 	root.mainloop()
 
