@@ -2,8 +2,6 @@
 #~ Kommentieren
 
 import sys
-sys.setrecursionlimit(100000)
-
 import random
 from shapes import *
 import visualization as vis
@@ -853,6 +851,8 @@ def group_points(D, queries):
 	return list(groups.values())
 
 def main():
+	sys.setrecursionlimit(100000)
+	
 	dataset_filename = 'data/punktlokalisierung_example'
 	#~ dataset_filename = 'data/multiple_intersections_completely_inside_example'
 	#~ dataset_filename = 'data/test'
@@ -871,6 +871,8 @@ def main():
 
 	result_filename = 'result/point_location_result'
 	write_result(result_filename, groups)
+	
+	sys.setrecursionlimit(100000)
 
 if __name__ == '__main__':
 	main()

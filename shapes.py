@@ -1,13 +1,7 @@
-#FIXME remove object id counters
-
 class Point:
-	class_counter = 0
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
-		
-		self.ident = Point.class_counter
-		Point.class_counter += 1
 	
 	def is_left_of(self, point):
 		return self.x < point.x
@@ -23,16 +17,13 @@ class Point:
 	
 	def __str__(self, indent=0, indent_string = '  '):
 		string_representation = indent_string * indent
-		string_representation += 'Po{0}: ({1},{2})'.format(self.ident, self.x, self.y)
+		string_representation += 'Po: ({0},{1})'.format(self.x, self.y)
 		return string_representation
 
 class Line:
-	class_counter = 0
 	def __init__(self, p, q):
 		self.p = p
 		self.q = q
-		self.ident = Line.class_counter
-		Line.class_counter += 1
 	
 	def eval(self, x_coord):
 		try:
@@ -44,11 +35,10 @@ class Line:
 	
 	def __str__(self, indent=0, indent_string = '  '):
 		string_representation = indent_string * indent
-		string_representation += 'Li{0}: ({1},{2}->{3},{4})'.format(self.ident, self.p.x, self.p.y, self.q.x, self.q.y)
+		string_representation += 'Li: ({0},{1}->{2},{3})'.format(self.p.x, self.p.y, self.q.x, self.q.y)
 		return string_representation
 
 class Trapezoid:
-	class_counter = 0
 	def __init__(self, top, bot, leftp, rightp):
 		self.top = top
 		self.bot = bot
@@ -59,9 +49,6 @@ class Trapezoid:
 		self.ne = None
 		self.sw = None
 		self.se = None
-		
-		self.ident = Trapezoid.class_counter
-		Trapezoid.class_counter += 1
 	
 	def replace_neighbor(self, old, new):
 		if self.nw is old:
@@ -77,15 +64,13 @@ class Trapezoid:
 	
 	def __str__(self, indent=0, indent_string = '  '):
 		string_representation = indent_string * indent
-		string_representation += 'Tr{0}: Top={1}, Bot={2}, LeftP={3}, RightP={4}'
-		string_representation += ' nw={5}, ne={6}, sw={7}, se={8}'
-		nw, ne, sw, se = None, None, None, None
-		if self.nw is not None:
-			nw = self.nw.ident
-		if self.ne is not None:
-			ne = self.ne.ident
-		if self.sw is not None:
-			sw = self.sw.ident
-		if self.se is not None:
-			se = self.se.ident
-		return string_representation.format(self.ident, self.top, self.bot, self.leftp, self.rightp, nw, ne, sw, se)
+		string_representation += 'Tr: Top={0}, Bot={1}, LeftP={2}, RightP={3}'
+		#~ string_representation += ' nw={4}, ne={5}, sw={6}, se={7}'
+		#~ return string_representation.format(self.top, self.bot, self.leftp, self.rightp, nw, ne, sw, se)
+		return string_representation.format(self.top, self.bot, self.leftp, self.rightp)
+
+
+
+
+
+
