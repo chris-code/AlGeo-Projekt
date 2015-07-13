@@ -100,7 +100,6 @@ def find_path(T, D, start, end):
 	
 	# Backtrace path
 	path = [end_node]
-	#~ while hasattr(path[-1], 'pred'):
 	while path[-1] is not start_node:
 		path.append(path[-1].pred)
 	path.reverse()
@@ -127,7 +126,12 @@ def main():
 
 	paths = []
 	for query in queries:
-		paths.append( find_path(T, D, query[0], query[1]) )
+		try:
+			path = find_path(T, D, query[0], query[1])
+			paths.append(path)
+		except Exception:
+			# No there is no path
+			pass
 
 	#~ vis.draw_decomposition(T)
 	#~ vis.draw_road_map(T)

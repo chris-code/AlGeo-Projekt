@@ -77,6 +77,10 @@ def draw_decomposition(T, D=None, queries=[]):
 	for trapezoid in T:
 		draw_trapezoid(trapezoid.top, trapezoid.bot, trapezoid.leftp, trapezoid.rightp)
 		#TODO draw face number if present
+		#~ if hasattr(trapezoid, 'face_index'):
+			#~ x_pos = (trapezoid.leftp.x + trapezoid.rightp.x)/2
+			#~ y_pos = (trapezoid.top.eval(x_pos) + trapezoid.bot.eval(x_pos))/2
+			#~ canv.create_text(x_pos, y_pos, text=trapezoid.face_index)
 	
 	for index, q in enumerate(queries):
 		trap = D.find(q)

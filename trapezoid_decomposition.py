@@ -1,5 +1,4 @@
 #~ TODO:
-#~ Mehr Daten generieren
 #~ Kommentieren
 
 import sys
@@ -856,6 +855,7 @@ def group_points(D, queries):
 def main():
 	dataset_filename = 'data/punktlokalisierung_example'
 	#~ dataset_filename = 'data/multiple_intersections_completely_inside_example'
+	#~ dataset_filename = 'data/test'
 	vertices, edges, queries = read_dataset(dataset_filename)
 
 	#~ vis.draw_scenario(vertices, edges, queries)
