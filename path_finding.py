@@ -1,4 +1,6 @@
+import sys
 import collections as col
+import argparse
 from shapes import *
 import trapezoid_decomposition as decomp
 import visualization as vis
@@ -111,7 +113,18 @@ def find_path(T, D, start, end):
 	return path
 
 def main():
-	dataset_filename = 'data/pfadsuche_example'
+	sys.setrecursionlimit(100000)
+	
+	argparser = argparse.ArgumentParser()
+	argparser.add_argument('in_file', help='The file to read data from')
+	argparser.add_argument('out_file', help='The file to store results in')
+	argparser.add_argument('-d', '--visualize_decomposition', help='Draw trapezoid decomposition on screen', action='store_true')
+	argparser.add_argument('-r', '--visualize_road_map', help='Draw road map on screen', action='store_true')
+	argparser.add_argument('-p', '--visualize_paths', help='Draw calculated paths on screen', action='store_true')
+	args = argparser.parse_args()
+	dataset_filename = args.in_file
+	result_filename = args.out_file
+	
 	obstacle_points, obstacle_lines, queries = read_dataset(dataset_filename)
 
 	obstacle_points_flat = [point for sublist in obstacle_points for point in sublist]
@@ -132,15 +145,20 @@ def main():
 		except Exception:
 			# No there is no path
 			pass
-
-	#~ vis.draw_decomposition(T)
-	#~ vis.draw_road_map(T)
-	#~ for path in paths:
-		#~ vis.draw_path(path)
-	#~ vis.show_surface()
 	
-	result_filename = 'result/path_finding_result'
+	if args.visualize_decomposition:
+		vis.draw_decomposition(T)
+	if args.visualize_road_map:
+		vis.draw_road_map(T)
+	if args.visualize_paths:
+		for path in paths:
+			vis.draw_path(path)
+	if args.visualize_decomposition or args.visualize_road_map:
+		vis.show_surface()
+	
 	write_result(result_filename, paths)
+	
+	sys.setrecursionlimit(1000)
 
 if __name__ == '__main__':
 	main()

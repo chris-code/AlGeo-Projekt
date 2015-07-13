@@ -3,6 +3,7 @@
 
 import sys
 import random
+import argparse
 from shapes import *
 import visualization as vis
 
@@ -853,26 +854,36 @@ def group_points(D, queries):
 def main():
 	sys.setrecursionlimit(100000)
 	
-	dataset_filename = 'data/punktlokalisierung_example'
-	#~ dataset_filename = 'data/multiple_intersections_completely_inside_example'
-	#~ dataset_filename = 'data/test'
+	argparser = argparse.ArgumentParser()
+	argparser.add_argument('in_file', help='The file to read data from')
+	argparser.add_argument('out_file', help='The file to store results in')
+	argparser.add_argument('-i', '--visualize_input', help='Draw input on screen', action='store_true')
+	argparser.add_argument('-l', '--visualize_localization', help='Draw localization on screen', action='store_true')
+	argparser.add_argument('-d', '--visualize_decomposition', help='Draw trapezoid decomposition on screen', action='store_true')
+	args = argparser.parse_args()
+	dataset_filename = args.in_file
+	result_filename = args.out_file
+	
 	vertices, edges, queries = read_dataset(dataset_filename)
 
-	#~ vis.draw_scenario(vertices, edges, queries)
-	#~ vis.show_surface()
+	if args.visualize_input:
+		vis.draw_scenario(vertices, edges, queries)
+		vis.show_surface()
 
 	T, D = construct_trapezoid_decomposition(edges)
 	assign_faces(T)
 	groups = group_points(D, queries)
 
-	#~ vis.draw_decomposition(T, D, queries)
-	#~ vis.draw_decomposition(T, D, [])
-	#~ vis.show_surface()
+	if args.visualize_decomposition:
+		vis.draw_decomposition(T, D, [])
+	if args.visualize_localization:
+		vis.draw_decomposition(T, D, queries)
+	if args.visualize_decomposition or args.visualize_localization:
+		vis.show_surface()
 
-	result_filename = 'result/point_location_result'
 	write_result(result_filename, groups)
 	
-	sys.setrecursionlimit(100000)
+	sys.setrecursionlimit(1000)
 
 if __name__ == '__main__':
 	main()
