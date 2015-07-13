@@ -5,6 +5,7 @@ from shapes import *
 import trapezoid_decomposition as decomp
 import visualization as vis
 
+# Read obstacles and query points according to specification
 def read_dataset(filename):
 	with open(filename, 'r') as f:
 		b, h, n, l = f.readline().strip().split()
@@ -36,6 +37,7 @@ def read_dataset(filename):
 		
 		return obstacle_points, obstacle_lines, queries
 
+# Write calculated paths to file
 def write_result(filename, paths):
 	with open(filename, 'w') as f:
 		for path in paths:
@@ -43,32 +45,44 @@ def write_result(filename, paths):
 			for point in path:
 				f.write('{0} {1}\n'.format(point.x, point.y))
 
+# Remove those trapezoids from T that correspond to obstacles.
 def remove_obstructed_space(T, D, valid_point):
+	# Find the face that is the valid space
 	valid_trapezoid = D.find(valid_point)
 	valid_face_index = valid_trapezoid.face_index
 	
+	# Remove the rest
 	invalid_trapezoids = set()
 	for trapezoid in T:
 		if trapezoid.face_index != valid_face_index:
 			invalid_trapezoids.add(trapezoid)
 	T -= invalid_trapezoids
 
+# Construct road map from 'T' by placing a node in each Trapezoids center.
+# Also, each Trapezoid creates the nodes it shares with its right neighbors and
+# links them accordingly.
+# The trapezoids are given a pointer to their corresponding 'center' node
 def construct_road_map(T):
+	# Give each trapezoid a 'center' node
 	for trap in T:
 		center_x = (trap.leftp.x + trap.rightp.x)/2
 		center_y = (trap.top.eval(center_x) + trap.bot.eval(center_x))/2
 		trap.center = Point(center_x, center_y)
 		trap.center.neighbors = []
 	
+	# Create nodes shared with right neighbors
 	for trap in T:
 		connecting_point_x = trap.rightp.x
 		
+		# Node shared with north-east neighbor
 		if trap.ne is not None:
 			connecting_point_y = (trap.top.eval(trap.rightp.x) + trap.rightp.y)/2
 			connecting_point = Point(connecting_point_x, connecting_point_y)
 			connecting_point.neighbors = [trap.center, trap.ne.center]
 			trap.center.neighbors.append(connecting_point)
 			trap.ne.center.neighbors.append(connecting_point)
+		
+		# Node shared with south-east neighbor
 		if trap.se is not None:
 			connecting_point_y = (trap.bot.eval(trap.rightp.x) + trap.rightp.y)/2
 			connecting_point = Point(connecting_point_x, connecting_point_y)
@@ -76,15 +90,20 @@ def construct_road_map(T):
 			trap.center.neighbors.append(connecting_point)
 			trap.se.center.neighbors.append(connecting_point)
 
+# Uses the search structure 'D' and the road map reachable via 'T' to find
+# a valid path from 'start' to 'end'
 def find_path(T, D, start, end):
+	# Find nodes containing 'start' and 'end'
 	start_trap = D.find(start)
 	start_node = start_trap.center
 	end_trap = D.find(end)
 	end_node = end_trap.center
 	
+	# 'start' and 'end' have to be in the valid space
 	if start_trap not in T or end_trap not in T:
 		raise Exception('Start or end not in valid region')
 	
+	# Breadth first search
 	visited = set([start_node])
 	queue = col.deque([start_node])
 	while len(queue) > 0:
@@ -129,14 +148,20 @@ def main():
 
 	obstacle_points_flat = [point for sublist in obstacle_points for point in sublist]
 	obstacle_lines_flat = [line for sublist in obstacle_lines for line in sublist]
-
+	
+	# Construct decomposition and assign 'face_index' to each trapezoid
 	T, D = decomp.construct_trapezoid_decomposition(obstacle_lines_flat)
 	decomp.assign_faces(T)
 
-	# Using first query point as cue what the valid face is
+	# Using first query point as cue what the valid face is, and remove all
+	# Trapezoids not in valid face. Then construct the road map on the remaining
+	# Trapezoids
 	remove_obstructed_space(T, D, queries[0][0])
 	construct_road_map(T)
-
+	
+	# Compute path for each query point.
+	# Since there is no output format specified for queries that have no
+	# valid path, they are ignored.
 	paths = []
 	for query in queries:
 		try:

@@ -1,18 +1,19 @@
-#~ TODO:
-#~ Kommentieren
-
 import sys
 import random
 import argparse
 from shapes import *
 import visualization as vis
 
+# Contains the trapezoids of the decomposition. Basically a sub-class of set.
+# A 'get_intersected_trapezoids' member helps find trapezoids that are intersected by a line
 class Decomposition(set):
+	# Get a list of trapezoids intersected by 'line', ordered from left to right
 	def get_intersected_trapezoids(self, D, line):
-		#~ TODO justify searching for a point on the Line l_i just after
-		#~ the point p_i, instead of searching for p_i directly
-		#~ deltata = [ D.find(line.p) ]
-		#~ TODO also make the values 0.99, 0.01 data-dependent
+		# Leftmost points of a line can lie exactly on corners where multiple existing trapezoids
+		# meet. To make sure that the first trapezoid found truly contains the leftmost point,
+		# it is reasonable to search for a point 'just a little further down the line'.
+		# This distance is quite arbitrarily chosen to be 1%, but should be made data-dependent
+		# since a long enough line could still produce erroneus results.
 		search_start = Point(line.p.x * 0.99 + line.q.x*0.01, line.p.y * 0.99 + line.q.y*0.01)
 		deltata = [ D.find(search_start) ]
 		while line.q.is_right_of(deltata[-1].rightp):
@@ -28,6 +29,10 @@ class Decomposition(set):
 			string_representation += '{0}\n'.format(trapezoid)
 		return string_representation
 
+# Represents the search structure for the trapezoid decomposition. Each object has a 'content'
+# attribute that specifies the point, line or trapezoid it represents. It also contains 'left'
+# and 'right' pointers to other 'Tree' objects, so this is a recursive data structure.
+
 # For an inner node that represents a line, the left pointer references
 # the area above the line, and the right pointer the area below
 # For an inner node that represents a point, the left pointer references
@@ -38,9 +43,11 @@ class Tree:
 		self.left = left
 		self.right = right
 	
+	# Find the trapezoid containing 'point'
 	def find(self, point):
 		return self._find_node(point).content
 	
+	# Find the 'Tree' object that corresponds to the trapezoid containing 'point'
 	def _find_node(self, point):
 		#~ node = self
 		#~ while not isinstance(node.content, Trapezoid):
@@ -82,6 +89,7 @@ class Tree:
 			string_representation += self.right.__str__(indent+1)
 		return string_representation
 
+# Read points, lines and query points according to specification
 def read_dataset(filename):
 	with open(filename, 'r') as f:
 		n, m, l = f.readline().strip().split()
@@ -104,6 +112,7 @@ def read_dataset(filename):
 			
 		return vertices, edges, queries
 
+# Write points on the same face into the same line according to specification
 def write_result(filename, groups):
 	with open(filename, 'w') as f:
 		for group in groups:
@@ -111,7 +120,9 @@ def write_result(filename, groups):
 				f.write('{0} '.format(point + 1))
 			f.write('\n')
 
+# Create bounding box and initialize T and D with it
 def initialize(edges):
+	# Calculate limits
 	left_limit = min(edges[0].p.x, edges[0].q.x)
 	right_limit = max(edges[0].p.x, edges[0].q.x)
 	lower_limit = min(edges[0].p.y, edges[0].q.y)
@@ -122,6 +133,7 @@ def initialize(edges):
 		lower_limit = min(lower_limit, line.p.y, line.q.y)
 		upper_limit = max(upper_limit, line.p.y, line.q.y)
 	
+	# Create bounding box
 	bb_nw = Point(left_limit - 1, upper_limit + 1)
 	bb_sw = Point(left_limit - 1, lower_limit - 1)
 	bb_ne = Point(right_limit + 1, upper_limit + 1)
@@ -132,6 +144,8 @@ def initialize(edges):
 	
 	return Decomposition([bb]), Tree(bb)
 
+# Covers the case where an added line intersects exactly one trapezoid,
+# and both end-points lie within it.
 def handle_one_trapezoid_completely_inside(T, D, delta0, line):
 	# Split into 4 trapezoids
 	A_trap = Trapezoid(delta0.top, delta0.bot, delta0.leftp, line.p)
@@ -170,6 +184,9 @@ def handle_one_trapezoid_completely_inside(T, D, delta0, line):
 	p_node.left = A_node
 	p_node.right = q_node
 
+# Covers the case where an added line intersects exactly one trapezoid,
+# and the left end-point touches the trapezoid's left side while the right
+# end-point is completely contained.
 def handle_one_trapezoid_left_touching(T, D, delta0, line):
 	# Split into 3 trapezoids
 	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
@@ -204,6 +221,9 @@ def handle_one_trapezoid_left_touching(T, D, delta0, line):
 	q_node.left = s_node
 	q_node.right = D_node
 
+# Covers the case where an added line intersects exactly one trapezoid,
+# and the right end-point touches the trapezoid's right side while the left
+# end-point is completely contained.
 def handle_one_trapezoid_right_touching(T, D, delta0, line):
 	# Split into 3 trapezoids
 	A_trap = Trapezoid(delta0.top, delta0.bot, delta0.leftp, line.p)
@@ -238,6 +258,9 @@ def handle_one_trapezoid_right_touching(T, D, delta0, line):
 	p_node.left = A_node
 	p_node.right = s_node
 
+# Covers the case where an added line intersects exactly one trapezoid,
+# and the left end-point touches the trapezoid's left side while the right
+# end-point touches the trapezoid's right side.
 def handle_one_trapezoid_both_touching(T, D, delta0, line):
 	# Split into 2 trapezoids
 	B_trap = Trapezoid(delta0.top, line, line.p, line.q)
@@ -269,6 +292,9 @@ def handle_one_trapezoid_both_touching(T, D, delta0, line):
 	s_node.left = B_node
 	s_node.right = C_node
 
+# Handles the case where a line intersects multiple trapezoids,
+# and the left end-point is contained within the first trapezoid while
+# the right end-point is contained within the last trapezoid.
 def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	left_trap = Trapezoid(Delta[0].top, Delta[0].bot, Delta[0].leftp, line.p)
 	
@@ -406,6 +432,9 @@ def handle_multiple_trapezoids_completely_inside(T, D, Delta, line):
 	T.update(upper_list)
 	T.update(lower_list)
 
+# Handles the case where a line intersects multiple trapezoids,
+# and the left end-point touches the left side of the first trapezoid while
+# the right end-point is contained within the last trapezoid.
 def handle_multiple_trapezoids_left_touching(T, D, Delta, line):
 	# Create first trapezoid above the line
 	upper_trap = Trapezoid(Delta[0].top, line, line.p, Delta[0].rightp)
@@ -533,6 +562,9 @@ def handle_multiple_trapezoids_left_touching(T, D, Delta, line):
 	T.update(upper_list)
 	T.update(lower_list)
 
+# Handles the case where a line intersects multiple trapezoids,
+# and the left end-point is contained within the first trapezoid while
+# the right end-point touches the right side of the last trapezoid.
 def handle_multiple_trapezoids_right_touching(T, D, Delta, line):
 	left_trap = Trapezoid(Delta[0].top, Delta[0].bot, Delta[0].leftp, line.p)
 	
@@ -662,6 +694,9 @@ def handle_multiple_trapezoids_right_touching(T, D, Delta, line):
 	T.update(upper_list)
 	T.update(lower_list)
 
+# Handles the case where a line intersects multiple trapezoids,
+# and the left end-point touches the left side of the first trapezoid and
+# the right end-point touches the right side of the last trapezoid.
 def handle_multiple_trapezoids_both_touching(T, D, Delta, line):
 	# Create first trapezoid above the line
 	upper_trap = Trapezoid(Delta[0].top, line, line.p, Delta[0].rightp)
@@ -781,6 +816,9 @@ def handle_multiple_trapezoids_both_touching(T, D, Delta, line):
 	T.update(upper_list)
 	T.update(lower_list)
 
+# Starts in 'trapezoid', and assigns the 'face_index' to each trapezoid reachable through
+# neighbor-pointers. Afterwards, all trapezoids in the same face as 'trapezoid' all have been
+# assigned 'face_index'
 def assign_face(trapezoid, face_index):
 	if trapezoid is not None:
 		if not hasattr(trapezoid, 'face_index'):
@@ -794,16 +832,19 @@ def assign_face(trapezoid, face_index):
 			return True
 	return False
 
+# Starts in each trapezoid and tries to assign it and its neighbors a 'face_index'
+# that increases whenever an entire neighborhood as been processed.
 def assign_faces(T):
 	face_index = 0
 	for trapezoid in T:
 		if assign_face(trapezoid, face_index):
 			face_index += 1
 
+# The core of the trapezoid decomposition
 # Assumes that for every line pq it holds: p is left of q
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
-	random.shuffle(edges) # FIXME
+	random.shuffle(edges)
 	for line in edges:
 		#~ print('--------------------')
 		#~ print('\nT:\n{0}'.format(T))
@@ -837,6 +878,7 @@ def construct_trapezoid_decomposition(edges):
 		
 	return T, D
 
+# Groups points by the faces they are in
 def group_points(D, queries):
 	groups = {}
 	
@@ -869,7 +911,8 @@ def main():
 	if args.visualize_input:
 		vis.draw_scenario(vertices, edges, queries)
 		vis.show_surface()
-
+	
+	# Construct decomposition, assign face_index to each trapezoid and group query points
 	T, D = construct_trapezoid_decomposition(edges)
 	assign_faces(T)
 	groups = group_points(D, queries)

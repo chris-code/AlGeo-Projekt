@@ -1,3 +1,5 @@
+# Represents a point via its 'x' and 'y' members
+# Also provides a method to test whether it is above a given line
 class Point:
 	def __init__(self, x, y):
 		self.x = x
@@ -9,6 +11,7 @@ class Point:
 	def is_right_of(self, point):
 		return self.x > point.x
 	
+	# Return True if it is truly above 'line'
 	def is_above(self, line):
 		# Sarrus scheme
 		det = line.q.x * self.y + line.p.x * line.q.y + line.p.y * self.x
@@ -20,11 +23,14 @@ class Point:
 		string_representation += 'Po: ({0},{1})'.format(self.x, self.y)
 		return string_representation
 
+# Represents a line segment via its start point 'p' and end point 'q'
+# Provides a method eval() to get the y-value of the induced line at a given position
 class Line:
 	def __init__(self, p, q):
 		self.p = p
 		self.q = q
-	
+
+	# Get the y-value of the induced line at 'x_coord'
 	def eval(self, x_coord):
 		try:
 			slope = (self.q.y - self.p.y) / (self.q.x - self.p.x)
@@ -38,6 +44,9 @@ class Line:
 		string_representation += 'Li: ({0},{1}->{2},{3})'.format(self.p.x, self.p.y, self.q.x, self.q.y)
 		return string_representation
 
+# Represents a trapezoid via the Lines top and bottom and the points leftp and rightp
+# A Trapezoid also contains (externally managed) pointers to its neighbors
+# To update neighborhood relations, a replace_neighbor() method is provided for convenience
 class Trapezoid:
 	def __init__(self, top, bot, leftp, rightp):
 		self.top = top
@@ -50,6 +59,7 @@ class Trapezoid:
 		self.sw = None
 		self.se = None
 	
+	# Replaces a pointer to neighbor 'old' with a pointer to the new neighbor 'new'
 	def replace_neighbor(self, old, new):
 		if self.nw is old:
 			self.nw = new

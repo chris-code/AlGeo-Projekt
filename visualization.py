@@ -3,10 +3,15 @@ from shapes import *
 
 canvasSizeX = 400
 canvasSizeY = 400
+
+# The colors that are used to show which point is assigned to which trapezoid
 colors = ['blue', 'red', 'green', 'yellow', 'cyan', 'magenta']
 
+# Global variables so that the user can call different draw functions that
+# draw on the same canvas without having to supply the canvas as a handle
 window, canv = None, None
 
+# Set the window and canv global variables
 def make_surface():
 	global window, canv
 	
@@ -15,6 +20,7 @@ def make_surface():
 	canv = tk.Canvas(window, width = canvasSizeX, height = canvasSizeY)
 	canv.pack()
 
+# Show the drawn canvas, then purge the global variables window and canv
 def show_surface():
 	global window, canv
 	
@@ -38,17 +44,19 @@ def show_surface():
 	window.mainloop()
 	window, canv = None, None
 
+# point is a vis.Point object
 def draw_point(point, color='black'):
 	if window is None or canv is None:
-		make_surface()
+		make_surface() # Make sure there is a surface to draw on
 	
 	x = point.x
 	y = canvasSizeY - point.y
 	canv.create_oval(x-0.2, y-0.2, x+0.2, y+0.2, fill=color)
 
+# Draw line from p to q, where p and q are vis.Point objects
 def draw_line(p, q, color='black'):
 	if window is None or canv is None:
-		make_surface()
+		make_surface() # Make sure there is a surface to draw on
 	
 	px = p.x
 	py = canvasSizeY - p.y
@@ -56,10 +64,12 @@ def draw_line(p, q, color='black'):
 	qy = canvasSizeY - q.y
 	canv.create_line(px, py, qx, qy, width = 2, fill=color)
 
+# top and bot are vis.Line objects, leftp and rightp are vis.Point objects
 def draw_trapezoid(top, bot, leftp, rightp, color='black'):
 	if window is None or canv is None:
-		make_surface()
+		make_surface() # Make sure there is a surface to draw on
 	
+	# Calculate corner points
 	nw = Point(leftp.x, top.eval(leftp.x))
 	ne = Point(rightp.x, top.eval(rightp.x))
 	sw = Point(leftp.x, bot.eval(leftp.x))
@@ -70,6 +80,7 @@ def draw_trapezoid(top, bot, leftp, rightp, color='black'):
 	draw_line(se, sw, color=color)
 	draw_line(sw, nw, color=color)
 
+# Draws the entire trapezoid decomposition T
 def draw_decomposition(T, D=None, queries=[]):
 	if window is None or canv is None:
 		make_surface()
@@ -82,7 +93,9 @@ def draw_decomposition(T, D=None, queries=[]):
 			#~ y_pos = (trapezoid.top.eval(x_pos) + trapezoid.bot.eval(x_pos))/2
 			#~ canv.create_text(x_pos, y_pos, text=trapezoid.face_index)
 	
+	# Also draw query points and the trapezoids that contain them in the same color
 	for index, q in enumerate(queries):
+		# Draw the trapezoid slightly smaller so that shared edges don't overwrite each other
 		trap = D.find(q)
 		shrinkage = 0.1
 		top = Line(Point(trap.top.p.x, trap.top.p.y - shrinkage), Point(trap.top.q.x, trap.top.q.y - shrinkage))
@@ -95,9 +108,11 @@ def draw_decomposition(T, D=None, queries=[]):
 		draw_trapezoid(top, bot, leftp, rightp, color=trap.color)
 		draw_point(q, color=trap.color)
 
+# Draws lists of vertices, edges and query points
+# Query points are drawn in blue for clarity
 def draw_scenario(vertices, edges, queries):
 	if window is None or canv is None:
-		make_surface()
+		make_surface() # Make sure there is a surface to draw on
 	
 	for vertex in vertices:
 		draw_point(vertex)
@@ -106,7 +121,12 @@ def draw_scenario(vertices, edges, queries):
 	for query in queries:
 		draw_point(query, color='blue')
 
+# Draw the road map of T. This needs to be calculated beforehand and be
+# accessible via the Trapezoid.center attribute.
 def draw_road_map(T):
+	if window is None or canv is None:
+		make_surface() # Make sure there is a surface to draw on
+	
 	points = []
 	lines = []
 	for trap in T:
@@ -115,7 +135,11 @@ def draw_road_map(T):
 			draw_point(neighbor)
 			draw_line(trap.center, neighbor)
 
+# Draw a path
 def draw_path(path):
+	if window is None or canv is None:
+		make_surface() # Make sure there is a surface to draw on
+	
 	for index, point in enumerate(path[:-1]):
 		draw_point(point, color='blue')
 		draw_line(point, path[(index+1) % len(path)])
