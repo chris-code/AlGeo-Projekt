@@ -1,6 +1,7 @@
 import sys
 import random
 import argparse
+from timeit import default_timer as timer
 from shapes import *
 import visualization as vis
 
@@ -12,9 +13,9 @@ class Decomposition(set):
 		# Leftmost points of a line can lie exactly on corners where multiple existing trapezoids
 		# meet. To make sure that the first trapezoid found truly contains the leftmost point,
 		# it is reasonable to search for a point 'just a little further down the line'.
-		# This distance is quite arbitrarily chosen to be 1%, but should be made data-dependent
+		# This distance is quite arbitrarily chosen to be 0.0001, but should be made data-dependent
 		# since a long enough line could still produce erroneus results.
-		search_start = Point(line.p.x * 0.99 + line.q.x*0.01, line.p.y * 0.99 + line.q.y*0.01)
+		search_start = Point(line.p.x * 0.999999 + line.q.x*0.000001, line.p.y * 0.999999 + line.q.y*0.000001)
 		deltata = [ D.find(search_start) ]
 		while line.q.is_right_of(deltata[-1].rightp):
 			if deltata[-1].rightp.is_above(line):
@@ -845,6 +846,10 @@ def assign_faces(T):
 def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
+	
+	find_intersections_time = 0
+	single_split_time = 0
+	multiple_split_time = 0
 	for line in edges:
 		#~ print('--------------------')
 		#~ print('\nT:\n{0}'.format(T))
@@ -853,9 +858,15 @@ def construct_trapezoid_decomposition(edges):
 		#~ print('--------------------')
 		#~ vis.draw_decomposition(T)
 		#~ vis.show_surface()
+		
+		start_time = timer()
 		H = T.get_intersected_trapezoids(D, line)
+		end_time = timer()
+		find_intersections_time += end_time - start_time
+		
 		T -= set(H)
 		if len(H) == 1:
+			start_time = timer()
 			delta0 = H[0]
 			
 			if line.p.x > delta0.leftp.x and line.q.x < delta0.rightp.x:
@@ -866,7 +877,10 @@ def construct_trapezoid_decomposition(edges):
 				handle_one_trapezoid_right_touching(T, D, delta0, line)
 			else: # line.p.x == delta0.leftp.x and line.q.x == delta0.rightp.x
 				handle_one_trapezoid_both_touching(T, D, delta0, line)
+			end_time = timer()
+			single_split_time += end_time - start_time
 		else:
+			start_time = timer()
 			if line.p.x > H[0].leftp.x and line.q.x < H[-1].rightp.x:
 				handle_multiple_trapezoids_completely_inside(T, D, H, line)
 			elif line.p.x == H[0].leftp.x and line.q.x < H[-1].rightp.x:
@@ -875,7 +889,12 @@ def construct_trapezoid_decomposition(edges):
 				handle_multiple_trapezoids_right_touching(T, D, H, line)
 			else: # line.p.x == H[0].leftp.x and line.q.x == H[-1].rightp.x:
 				handle_multiple_trapezoids_both_touching(T, D, H, line)
-		
+			end_time = timer()
+			multiple_split_time += end_time - start_time
+	
+	print('\tFind trapezoids time: {0}'.format(find_intersections_time))
+	print('\tSplit one trapezoid time: {0}'.format(single_split_time))
+	print('\tSplit multiple trapezoids time: {0}'.format(multiple_split_time))
 	return T, D
 
 # Groups points by the faces they are in
@@ -913,9 +932,20 @@ def main():
 		vis.show_surface()
 	
 	# Construct decomposition, assign face_index to each trapezoid and group query points
+	start_time = timer()
 	T, D = construct_trapezoid_decomposition(edges)
+	end_time = timer()
+	print('Decomposition time: {0}'.format(end_time - start_time))
+	
+	start_time = timer()
 	assign_faces(T)
+	end_time = timer()
+	print('Face assignment time: {0}'.format(end_time - start_time))
+	
+	start_time = timer()
 	groups = group_points(D, queries)
+	end_time = timer()
+	print('Point grouping time: {0}'.format(end_time - start_time))
 
 	if args.visualize_decomposition:
 		vis.draw_decomposition(T, D, [])
