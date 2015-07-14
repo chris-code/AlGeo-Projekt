@@ -44,7 +44,6 @@
 
 % Warum in Python?
 
-% TODO: Kapitel Annahmen
 % TODO: Degenerierten Datensatz testen
 
 \begin{document}
@@ -52,20 +51,19 @@
 
 \section{Einleitung}
 
-\begin{itemize}
-\item Zerlegung
-\item Facettenzuweisung
-\item Punktgruppierung
-\end{itemize}
+
+Der für Aufgabenteil 1 entwickelte Algorithmus besteht im Wesentlichen aus drei unterschiedlichen Teilen. Der erste Teil umfasst die Erstellung der Trapezzerlegung. Sobald diese erstellt wurde, müssen im zweiten Teil den Trapezen der Trapezzerlegung die entsprechenden Facetten der originalen Unterteilung der Ebene zugeordnet werden. Anschließend werden im letzten Teil alle jene Punkte zusammengefasst, welche einer Facette angehören. Die Umsetzung der einzelnen Teile wird in den folgenden Kapiteln genauer untersucht.\\
+Für den zweiten Aufgabenteil verwenden wir die für Aufgabenteil 1 programmierte Trapezzerlegung zur Ermittlung eines hindernisfreien Pfades eines Roboters durch die mit Hindernissen versehene Ebene. Dabei halten wir uns im Allgemeinen an die Vorgehensweise, welche im Buch \gerquote{Computational Geometry} von Mark de Berg, Otfried Cheong, Marc van Kreveld und Mark Overmars in Kapitel 13.2 vorgestellt wird. Es kommt also ein RoadMap-Graph zum Einsatz, der zwecks Pfadfindung mittels Breitensuche traversiert wird.\\
+Da die Programmiersprache Python 3 eine Vielzahl von komfortablen Datenstrukturen und Klassen zur Verfügung stellt und außerdem eine gute Leserlichkeit bietet, haben wir uns dazu entschlossen, das Programm in ebendieser Sprache zu programmieren.
 
 \section{Annahmen}
 
 Wie in der Aufgabenstellung angegeben, gehen wir im Rahmen dieses Projektes davon aus, dass sich alle Eingabepunkte in allgemeiner Lage befinden, also ganzzahlige Koordinaten haben, und keine zwei Punkte sich dieselbe x-Koordinate teilen. Dieser Umstand gewährleistet unter anderem, dass alle Nachbarn der Trapeze stets eindeutig definiert sind.\\
-Darüber hinaus gehen wir stets davon aus, dass sich der Startpunkt $p$ einer Strecke stets links von ihrem Endpunkt $q$ befindet. Diese Konvention führt zu einer nicht zu vernachlässigenden Reduktion benötigter Fallunterscheidungen bei der Erstellung der Trapezzerlegung.
+Darüber hinausgehend nehmen wir an, dass sich der Startpunkt $p$ einer Strecke stets links von ihrem Endpunkt $q$ befindet. Diese Konvention führt zu einer nicht zu vernachlässigenden Verringerung benötigter Fallunterscheidungen bei der Erstellung der Trapezzerlegung.
 
 \section{Objekte und Datenstrukturen}
 
-Zunächst wird an dieser Stelle aufgeführt, welche Datenstrukturen zur Realisierung der Trapezzerlegung entwickelt wurden.
+Im Folgenden wird aufgeführt, welche Datenstrukturen zur Realisierung der Trapezzerlegung entwickelt wurden.
 
 \subsection{Geometrische Objekte}
 
@@ -300,7 +298,7 @@ wobei jede Facette von einem Starttrapez aus über die Nachbarschaftsverweise tr
 	\label{fig:face-assignment}
 \end{figure}
 
-In unserer Implementierung ist eine Facette eine inkrementierende Integer-Variable (die, anders als hier vereinfachend dargestellt, nur inkrementiert wird wenn nötig), die dem Trapez-Objekt als Attribut hinzugefügt werden. Damit ist es in konstanter Zeit möglich, von dem Trapez auf die Facette zu schließen. Da die Zuweisung in jeder Facette nur einmal gestartet wird und innerhalb dieser Facette höchstens von $4$ Nachbarn 'betreten' wird, ist die Laufzeit der Zuweisung $\mathcal{O}(\abs{T})$ und damit $\mathcal{O}(m)$, wobei $m$ die Anzahl der Strecken ist.
+In unserer Implementierung ist eine Facette eine inkrementierende Integer-Variable (die, anders als hier vereinfachend dargestellt, nur inkrementiert wird, wenn nötig), die dem Trapez-Objekt als Attribut hinzugefügt wird. Damit ist es in konstanter Zeit möglich, von dem Trapez auf die Facette zu schließen. Da die Zuweisung in jeder Facette nur einmal gestartet wird und jedes Trapez innerhalb einer Facette höchstens von $4$ Nachbarn 'betreten' wird, ist die Laufzeit der Zuweisung $\mathcal{O}(\abs{T})$ und damit $\mathcal{O}(m)$, wobei $m$ die Anzahl der Strecken ist.
 
 \section{Punktgruppierung}
 Um die Punkte in der selben Facette in eine Zeile schreiben zu können, müssen sie zunächst nach Facette gruppiert werden. Die Facetten, zu denen die $l$ Abfragepunkte gehören, können in erwartet $\mathcal{O}(l \log m)$ bestimmt werden, wobei $m$ die Anzahl der Strecken ist.
@@ -434,9 +432,6 @@ Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 		\end{scope}
 	\end{tikzpicture}
 \end{figure}
-\item Wie werden mehrere gefundene Trapeze unterteilt?
-\item Wie Trapzen Facetten zugeteilt werden
-\item Gruppen der Punkte anhand der Facetten
 \end{itemize}
 
 \end{document}
