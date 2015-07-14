@@ -42,10 +42,6 @@
 \author{Phil Yannick Schrör \and Christian Mielers}
 \date{\today}
 
-% Warum in Python?
-
-% TODO: Degenerierten Datensatz testen
-
 \begin{document}
 \maketitle
 
@@ -352,6 +348,8 @@ Um die Punkte in der selben Facette in eine Zeile schreiben zu können, müssen 
 Die einzelnen Gruppen werden in unserem Programm als Python \texttt{list} vorgehalten, die ein Anfügen eines Punktes in $\mathcal{O}(1)$ erlauben. Um ohne explizite Repräsentation der Facetten (es gibt kein Facetten-Objekt oder Ähnliches) von der Integer-Variable, die den Facettenindex angibt, zu der entsprechenden Liste zu gelangen, werden die Listen in einer Hashmap (Python-\texttt{dictionary}) mit Facettenindex gespeichert, so dass das Finden der gesuchten Liste in erwartet $\mathcal{O}(1)$ möglich ist.
 
 \section{Performance}
+\label{sec:performance}
+
 Zum Testen der Performance wurden Testdatensätze generiert, die automatisch von einem weiteren Python3-Programm erstellt werden. Diese entsprechen der Form nach einem gescherten Lattenrost, exemplarisch dargestellt in Abbildung \ref{fig:generated_dataset}. Zusätzlich wird für jede Facette ein Abfragepunkt generiert, der an einem zufälligen Ort in der Facette liegt.
 
 \begin{figure}[h!]
@@ -434,6 +432,9 @@ Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 \end{tabular}
 
 Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
+
+\section{Degenerierte Eingaben}
+Unser Algorithmus macht von der Annahme der Ganzzahligkeit der Eingabekoordinaten keinen Gebrauch, weswegen wir beim Test derartiger Eingaben keine Probleme feststellen konnten. Anders sieht es allerdings bei der Annahme aus, dass keine zwei Punkte auf der gleichen x-Koordinate liegen. Dies führt zu konzeptionellen Änderungen an der Trapezzerlegung. Insbesondere ist der Umstand, dass jedes Trapez nur noch maximal $4$ Nachbarn hat, die sich eindeutig entsprechend der Himmelsrichtungen referenzieren lassen nicht mehr gegeben. Deutlich wird dies am Datensatz \texttt{data/point\_localization\_degenerated}, der einem Lattenrost gemäß Abschnitt \ref{sec:performance} ähnelt, aber nicht geschert ist. Hier hat man manchmal aufgrund der Randomisierung Glück, es kann aber auch zu Abstürzen durch einen \texttt{AttributeError} kommen, wenn ein Attribut aufgrund falscher Nachbarschaftsverweise nicht gesetzt wurde oder die Suche nach geschnittenen Trapezen aufgrund falscher Verweise 'falsch abbiegt'.
 
 \end{document}
 
