@@ -178,7 +178,7 @@ def main():
 	if args.visualize_paths:
 		for path in paths:
 			vis.draw_path(path)
-	if args.visualize_decomposition or args.visualize_road_map:
+	if args.visualize_decomposition or args.visualize_road_map or args.visualize_paths:
 		vis.show_surface()
 	
 	write_result(result_filename, paths)

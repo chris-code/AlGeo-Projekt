@@ -10,6 +10,7 @@
 \usepackage{eurosym} %Euro symbol
 %\usepackage[ngerman]{babel}
 \usepackage{cancel} %Kürzen
+\usepackage{pbox}
 
 \newcommand\braces[1]{\left(#1\right)}
 \newcommand\brackets[1]{\left[#1\right]}
@@ -71,22 +72,45 @@ Bei den Programmen zur Trapezzerlegung und Pfadsuche handelt es sich um Python3-
 
 \paragraph{Trapezzerlegung} Die Trapezzerlegung wird in der Datei \texttt{trapezoid\_decomposition.py} realisiert. Die Syntax zum Programmaufruf lautet
 
-trapezoid\_decomposition.py [-h] [-i] [-d] [-l] in\_file out\_file
+\begin{quotation}
+	\texttt{python3 trapezoid\_decomposition.py [-h] [-i] [-d] [-l] in\_file out\_file}
+\end{quotation}
 
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|l|c|l|}
 	\hline
 	Parameter & erforderlich & Bedeutung \\
 	\hline
-	in\_file & * & Der Pfad zur Eingabedatei \\
-	out\_file & * & \\
-	h & & \\
-	i & & \\
-	d & & \\
-	l & & \\
+	in\_file & * & \pbox{10cm}{Der Pfad zur Eingabedatei, in der die Punkte, Strecken und Abfragepunkte gespeichert sind} \\
+	out\_file & * & Der Pfad zur Datei, in die die Ausgabe geschrieben wird \\
+	h & & Hilfe zum Programmaufruf anzeigen \\
+	i & & Die Eingabedaten (\textbf{i}nput) visualisieren \\
+	d & & Die Zerlegung (\textbf{d}ecomposition) visualisieren \\
+	l & & Lokalisierungsergebnisse (\textbf{l}ocalization) visualisieren \\
 	\hline
 \end{tabular}
 
-\paragraph{Pfadsuche}
+Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
+
+\paragraph{Pfadsuche} Die Pfadsuche mittels Trapezzerlegung wird in der Datei \texttt{path\_finding.py} realisiert. Die Syntax zum Programmaufruf lautet
+
+\begin{quotation}
+	\texttt{python3 path\_finding.py [-h] [-d] [-r] [-p] in\_file out\_file}
+\end{quotation}
+
+\begin{tabular}{|l|c|l|}
+	\hline
+	Parameter & erforderlich & Bedeutung \\
+	\hline
+	in\_file & * & \pbox{10cm}{Der Pfad zur Eingabedatei, in der die Hindernisse und Start- sowie End-punkte der zu findenden Pfade gespeichert sind} \\
+	out\_file & * & \pbox{10cm}{Der Pfad zur Datei, in die die gefundenen Pfade geschrieben werden} \\
+	h & & Hilfe zum Programmaufruf anzeigen \\
+	d & & \pbox{10cm}{Die Trapezzerlegung (\textbf{d}ecomposition) der Eingabedaten visualisieren, nachdem die Hindernis-Trapeze entfernt wurden} \\
+	r & & Die \textbf{R}oad-map visualisieren \\
+	p & & Die gefundenen Pfade (\textbf{p}aths) visualisieren \\
+	\hline
+\end{tabular}
+
+Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 
 \section{Kram}
 

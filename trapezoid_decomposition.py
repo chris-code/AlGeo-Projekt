@@ -919,8 +919,8 @@ def main():
 	argparser.add_argument('in_file', help='The file to read data from')
 	argparser.add_argument('out_file', help='The file to store results in')
 	argparser.add_argument('-i', '--visualize_input', help='Draw input on screen', action='store_true')
-	argparser.add_argument('-l', '--visualize_localization', help='Draw localization on screen', action='store_true')
 	argparser.add_argument('-d', '--visualize_decomposition', help='Draw trapezoid decomposition on screen', action='store_true')
+	argparser.add_argument('-l', '--visualize_localization', help='Draw localization on screen', action='store_true')
 	args = argparser.parse_args()
 	dataset_filename = args.in_file
 	result_filename = args.out_file
