@@ -6,7 +6,7 @@ from shapes import *
 import visualization as vis
 
 # Contains the trapezoids of the decomposition. Basically a sub-class of set.
-# A 'get_intersected_trapezoids' member helps find trapezoids that are intersected by a line
+# A 'get_intersected_trapezoids' method helps find trapezoids that are intersected by a line
 class Decomposition(set):
 	# Get a list of trapezoids intersected by 'line', ordered from left to right
 	def get_intersected_trapezoids(self, D, line):
@@ -101,17 +101,14 @@ def read_dataset(filename):
 		queries = []
 		for _ in range(n):
 			x, y = f.readline().strip().split()
-			#~ vertices.append( Point(int(x), int(y)) )
 			vertices.append( Point(float(x), float(y)) )
 		for _ in range(m):
 			i, j = f.readline().strip().split()
 			if vertices[int(i)-1].x > vertices[int(j)-1].x:
 				i, j = j, i
 			edges.append( Line(vertices[int(i)-1], vertices[int(j)-1]) )
-			#~ edges.append( Line(vertices[float(i)-1], vertices[float(j)-1]) )
 		for _ in range(l):
 			x, y = f.readline().strip().split()
-			#~ queries.append( Point(int(x), int(y)) )
 			queries.append( Point(float(x), float(y)) )
 			
 		return vertices, edges, queries
@@ -871,20 +868,20 @@ def construct_trapezoid_decomposition(edges):
 		if len(H) == 1:
 			delta0 = H[0]
 			
-			if line.p.x > delta0.leftp.x and line.q.x < delta0.rightp.x:
+			if line.p.is_right_of(delta0.leftp) and line.q.is_left_of(delta0.rightp):
 				handle_one_trapezoid_completely_inside(T, D, delta0, line)
-			elif line.p.x == delta0.leftp.x and line.q.x < delta0.rightp.x:
+			elif line.p is delta0.leftp and line.q.is_left_of(delta0.rightp):
 				handle_one_trapezoid_left_touching(T, D, delta0, line)
-			elif line.p.x > delta0.leftp.x and line.q.x == delta0.rightp.x:
+			elif line.p.is_right_of(delta0.leftp) and line.q is delta0.rightp:
 				handle_one_trapezoid_right_touching(T, D, delta0, line)
-			else: # line.p.x == delta0.leftp.x and line.q.x == delta0.rightp.x
+			else: # line.p.x is delta0.leftp.x and line.q.x is delta0.rightp.x
 				handle_one_trapezoid_both_touching(T, D, delta0, line)
 		else:
-			if line.p.x > H[0].leftp.x and line.q.x < H[-1].rightp.x:
+			if line.p.is_right_of(H[0].leftp) and line.q.is_left_of(H[-1].rightp):
 				handle_multiple_trapezoids_completely_inside(T, D, H, line)
-			elif line.p.x == H[0].leftp.x and line.q.x < H[-1].rightp.x:
+			elif line.p is H[0].leftp and line.q.is_left_of(H[-1].rightp):
 				handle_multiple_trapezoids_left_touching(T, D, H, line)
-			elif line.p.x > H[0].leftp.x and line.q.x == H[-1].rightp.x:
+			elif line.p.is_right_of(H[0].leftp) and line.q is H[-1].rightp:
 				handle_multiple_trapezoids_right_touching(T, D, H, line)
 			else: # line.p.x == H[0].leftp.x and line.q.x == H[-1].rightp.x:
 				handle_multiple_trapezoids_both_touching(T, D, H, line)

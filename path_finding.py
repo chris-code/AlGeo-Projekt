@@ -18,12 +18,12 @@ def read_dataset(filename):
 			k = int( f.readline() )
 			for _ in range(k):
 				x, y = f.readline().strip().split()
-				points.append( Point(int(x), int(y)) )
+				points.append( Point(float(x), float(y)) )
 			obstacle_points.append(points)
 			
 			obstacle = []
 			for index in range(len(points)):
-				if points[index].x < points[(index + 1) % len(points)].x:
+				if points[index].is_left_of( points[(index + 1) % len(points)] ):
 					obstacle.append( Line(points[index], points[(index + 1) % len(points)]) )
 				else:
 					obstacle.append( Line(points[(index + 1) % len(points)], points[index]) )
@@ -33,7 +33,7 @@ def read_dataset(filename):
 		for _ in range(l):
 			a_x, a_y = f.readline().strip().split()
 			z_x, z_y = f.readline().strip().split()
-			queries.append(( Point(int(a_x), int(a_y)), Point(int(z_x), int(z_y))) )
+			queries.append(( Point(float(a_x), float(a_y)), Point(float(z_x), float(z_y))) )
 		
 		return obstacle_points, obstacle_lines, queries
 
