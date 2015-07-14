@@ -67,11 +67,42 @@ Als Datenstruktur für die Trapezzerlegung \T haben wir die Python-Klasse \textt
 Für die Suchstruktur \D haben wir die neue Klasse \texttt{Tree} entworfen. Ein Objekt dieser Klasse hat zum einen ein Attribut, welches den 'Inhalt' des Knotens speichert. Dabei kann es sich um eine Strecke, einen Punkt oder ein Trapez handeln. Zum anderen speichert es einen Links- und einen Rechtsverweis auf sein linkes bzw. rechtes Kind. Soll für einen Anfragepunkt $\rho$ ermittelt werden, in welchem Trapez dieser liegt, wird die Suchstruktur beginnend mit dem Wurzelknoten hinabgestiegen und dabei bei Punkten ermittelt, ob $\rho$ links oder rechts davon liegt, und bei Strecken, ob $\rho$ darüber oder darunter liegt. Entsprechend wird dann rekursiv mit dem linken bzw. rechten Kindknoten fortgefahren. Wird ein Blattknoten und damit ein Trapez erreicht, wird dieses als das den Punkt $\rho$ beinhaltendes Trapez als Antwort zurückgeliefert.
 
 \section{Performance}
-\begin{tabular}{|c|c|c|c|}
-	\hline
-	m & Decomposition & Face assignment & Point grouping \\
-	\hline
-\end{tabular}
+Zum Testen der Performance wurden Testdatensätze generiert, die automatisch von einem weiteren Python3-Programm erstellt werden. Diese entsprechen der Form nach einem gescherten Lattenrost, exemplarisch dargestellt in Abbildung \ref{fig:generated_dataset}. Zusätzlich wird für jede Facette ein Abfragepunkt generiert, der an einem zufälligen Ort in der Facette liegt.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.75\textwidth]{generated_dataset}
+	\caption{Darstellung der generierten Testdaten, Abfragepunkte in Blau}
+	\label{fig:generated_dataset}
+\end{figure}
+
+Auf derartigen Datensätzen unterschiedlicher Größe wurde die Laufzeit der 3 Hauptbestandteile des Algorithmus, der Trapezzerlegung, der Facettenzuweisung und der Punktgruppierung, gemessen. Die Zeiten sind in Tabelle \ref{tab:performance_table} eingetragen und in Abbildung \ref{fig:performance_plot} graphisch dargestellt. Bei der Abbildung sei besonders auf die logarithmische Skala auf beiden Achsen hingewiesen.
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|r|r|c|c|c|}
+		\hline
+		m & l & Zerlegung $(s)$ & Facettenzuweisung $(s)$ & Punktgruppierung $(s)$ \\
+		\hline
+		7 & 2 & 0.0007 & 0.0001 & 0.0001 \\
+		34 & 11 & 0.0033 & 0.0002 & 0.0003 \\
+		304 & 101 & 0.0424 & 0.0013 & 0.0037 \\
+		3004 & 1001 & 0.3959 & 0.0101 & 0.0440 \\
+		30004 & 10001 & 5.2805 & 0.1220 & 1.2981 \\
+		\hline
+	\end{tabular}
+	\caption{Laufzeiten der Zerlegung, der Facettenzuweisung und der Punktgruppierung für verschiedene Anzahlen von Zerlegungskanten $m$ und Abfragepunkten $l$}
+	\label{tab:performance_table}
+\end{table}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{performance}
+	\caption{Plot der Laufzeiten der Zerlegung, der Facettenzuweisung und der Punktgruppierung über die Anzahl der Zerlegungskanten $m$ in Sekunden}
+	\label{fig:performance_plot}
+\end{figure}
+
+Hierbei lässt sich feststellen, dass alle 3 Werte näherungsweise linear wachsen. Ein leichter superlinearer Trend lässt sich allerdings visuell bei der Punktgruppierung erahnen. Die Trapezzerlegung ist mit einigem Abstand die langwierigste Operation, wobei hierbei sowieso der größte konstante Faktor zu erwarten wäre. Da die Lokalisierung eines Punktes in erwartet $\mathcal{O}(\log n)$ läuft, ist die erwartete Laufzeit für das Lokalisieren von $\mathcal{O}(n \log n)$. Dies entspricht auch der insgesammt erwarteten Laufzeit für den Gruppierungsteil, da das Gruppieren der lokalisierten Punkte über das Einfügen in ein \texttt{Python-Dictionary} in armortisierter konstanter Zeit realisiert ist.
 
 \section{Programmnutzung}
 Bei den Programmen zur Trapezzerlegung und Pfadsuche handelt es sich um Python3-Programme. Daher muss auf der Zielplattform eine Python3-Runtime installiert sein, das ältere Python2 wird nicht unterstützt. Darüber hinaus weisen die Programme keine externen Abhängigkeiten (etwa zu Drittbibliotheken) auf.

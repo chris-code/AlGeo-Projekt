@@ -4,7 +4,7 @@ import random
 #~ 2(m+2)/3 = n
 
 #~ m must be of the form m = 4 + 3x, for x in N_0
-M = [4 + 3 * 10**x for x in range(5)]
+M = [4 + 3 * 10**x for x in range(6)]
 for m in M:
 	n = 2*(m+2)//3
 	
