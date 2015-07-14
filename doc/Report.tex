@@ -192,6 +192,44 @@ Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschlie�
 In unserem Algorithmus wird zunächst Trapez $A$ erstellt. Dessen westliche Nachbarn werden auf die Nachbarn von $\Delta_1$ gesetzt. Entsprechende Rückverweise werden ebenfalls gesetzt.
 Anschließend beginnen wir mit einer Schleife, welche über die $\Delta_i$ Trapeze iteriert. Da die Behandlung oberhalb und unterhalb der Strecke analog erfolgt, wird im Folgenden nur die Behandlung der Trapeze oberhalb der Strecke dargelegt. Zu Beginn erzeugen wir ein neues Trapez $\Delta_u$, welches auf den verbleibenden Teil von $\Delta_1$ rechts von $p$ und oberhalb von der Strecke gesetzt wird. Dieses Trapez erhält Trapez $A$ als nordwestlichen Nachbarn und als nordöstlichen Nachbarn den nordöstlichen Nachbarn von $\Delta_1$. Anschließend betrachten wir das Trapez $\Delta_2$ oberhalb der Strecke und stellen fest, dass die obere Kante des Trapezes die gleiche ist wie bei $\Delta_u$. Somit müssen wir unser bisheriges $\Delta_u$ mit dem betrachteten Ausschnitt von $\Delta_2$ verschmelzen. Auch an dieser Stelle muss der nordöstliche Nachbar verändert werden, er wird auf den nordöstlichen Nachbarn von $\Delta_2$ gesetzt. Nun betrachten wir Trapez $\Delta_3$ oberhalb der Strecke. Wir stellen fest, dass hier die oberen Begrenzungskanten ungleich sind. Somit lassen wir unser bisheriges $\Delta_u$ unverändert und erstellen ein neues Trapez $\Delta_u$, welches einen Südwestverweis auf das bisherige $\Delta_u$ und einen Nordwestverweis auf den nordwestlichen Nachbarn von Trapez $\Delta_3$ erhält. Auch hier müsste der nordöstliche Nachbar gesetzt werden, diesmal auf den jedoch nicht existierenden nordöstlichen Nachbarn von Trapez $\Delta_3$. Wie immer werden auch hier die enstprechenden Rückverweise gesetzt. Auf diese Weise verfahren wir weiter, bis wir beim letzten Trapez angelangt sind. 
 
+\section{Performance}
+Zum Testen der Performance wurden Testdatensätze generiert, die automatisch von einem weiteren Python3-Programm erstellt werden. Diese entsprechen der Form nach einem gescherten Lattenrost, exemplarisch dargestellt in Abbildung \ref{fig:generated_dataset}. Zusätzlich wird für jede Facette ein Abfragepunkt generiert, der an einem zufälligen Ort in der Facette liegt.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.75\textwidth]{generated_dataset}
+	\caption{Darstellung der generierten Testdaten, Abfragepunkte in Blau}
+	\label{fig:generated_dataset}
+\end{figure}
+
+Auf derartigen Datensätzen unterschiedlicher Größe wurde die Laufzeit der 3 Hauptbestandteile des Algorithmus, der Trapezzerlegung, der Facettenzuweisung und der Punktgruppierung, gemessen. Die Zeiten sind in Tabelle \ref{tab:performance_table} eingetragen und in Abbildung \ref{fig:performance_plot} graphisch dargestellt. Bei der Abbildung sei besonders auf die logarithmische Skala auf beiden Achsen hingewiesen.
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|r|r|c|c|c|}
+		\hline
+		m & l & Zerlegung $(s)$ & Facettenzuweisung $(s)$ & Punktgruppierung $(s)$ \\
+		\hline
+		7 & 2 & 0.0007 & 0.0001 & 0.0001 \\
+		34 & 11 & 0.0033 & 0.0002 & 0.0003 \\
+		304 & 101 & 0.0424 & 0.0013 & 0.0037 \\
+		3004 & 1001 & 0.3959 & 0.0101 & 0.0440 \\
+		30004 & 10001 & 5.2805 & 0.1220 & 1.2981 \\
+		\hline
+	\end{tabular}
+	\caption{Laufzeiten der Zerlegung, der Facettenzuweisung und der Punktgruppierung für verschiedene Anzahlen von Zerlegungskanten $m$ und Abfragepunkten $l$}
+	\label{tab:performance_table}
+\end{table}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{performance}
+	\caption{Plot der Laufzeiten der Zerlegung, der Facettenzuweisung und der Punktgruppierung über die Anzahl der Zerlegungskanten $m$ in Sekunden}
+	\label{fig:performance_plot}
+\end{figure}
+
+Hierbei lässt sich feststellen, dass alle 3 Werte näherungsweise linear wachsen. Ein leichter superlinearer Trend lässt sich allerdings visuell bei der Punktgruppierung erahnen. Die Trapezzerlegung ist mit einigem Abstand die langwierigste Operation, wobei hierbei sowieso der größte konstante Faktor zu erwarten wäre. Da die Lokalisierung eines Punktes in erwartet $\mathcal{O}(\log n)$ läuft, ist die erwartete Laufzeit für das Lokalisieren von $\mathcal{O}(n \log n)$. Dies entspricht auch der insgesammt erwarteten Laufzeit für den Gruppierungsteil, da das Gruppieren der lokalisierten Punkte über das Einfügen in ein \texttt{Python-Dictionary} in armortisierter konstanter Zeit realisiert ist.
+
 \section{Programmnutzung}
 Bei den Programmen zur Trapezzerlegung und Pfadsuche handelt es sich um Python3-Programme. Daher muss auf der Zielplattform eine Python3-Runtime installiert sein, das ältere Python2 wird nicht unterstützt. Darüber hinaus weisen die Programme keine externen Abhängigkeiten (etwa zu Drittbibliotheken) auf.
 
@@ -237,7 +275,7 @@ Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 
 Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 
-\section{Kram}
+\section{Krams}
 
 \begin{itemize}
 \item Erstes Trapez finden (0.99p + 0.01q)

@@ -1,8 +1,8 @@
 import tkinter as tk
 from shapes import *
 
-canvasSizeX = 400
-canvasSizeY = 400
+canvasSizeX = 600
+canvasSizeY = 600
 
 # The colors that are used to show which point is assigned to which trapezoid
 colors = ['blue', 'red', 'green', 'yellow', 'cyan', 'magenta']
@@ -17,7 +17,7 @@ def make_surface():
 	
 	window = tk.Tk()
 	window.resizable(tk.FALSE, tk.FALSE)
-	canv = tk.Canvas(window, width = canvasSizeX, height = canvasSizeY)
+	canv = tk.Canvas(window, width = canvasSizeX, height = canvasSizeY, background='white')
 	canv.pack()
 
 # Show the drawn canvas, then purge the global variables window and canv
