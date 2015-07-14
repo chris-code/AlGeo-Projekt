@@ -64,10 +64,10 @@ Zunächst wird an dieser Stelle aufgeführt, welche Datenstrukturen zur Realisie
 
 \subsection{Geometrische Objekte}
 
-Wir haben uns dazu entschlossen, die geometrischen Objekte als Klassen zu implementieren, da auf diese Weise die zahlreichen Methoden, die im Algorithmus immer wieder Verwendung finden, komfortabel zur Verfügung gestellt werden können.\\
-Die Klasse $\text{Point}$ speichert für einen Punkt seine $x$- und seine $y$-Koordinate. Weiterhin stellt sie Methoden zur Verfügung, welche überprüfen, ob ein übergebener Punkt links bzw. rechts vom betrachteten Punkt liegt. Außerdem existiert die Methode \texttt{is\_above(self, line)} Methode, die überprüft, ob der Punkt überhalb der übergegebenen Strecke liegt.\\
-Zur Abbildung von Strecken wurde die Klasse $\texttt{Line}$ entwickelt, welche sowohl einen Start- als auch einen Endpunkt speichert. Die Methode 
-\texttt{eval(self, x\_coord)} ermittelt für die übergebene $x$-Koordinate die zugehörige $y$-Koordinate auf der Linie.\\
+Wir haben uns dazu entschlossen, die geometrischen Objekte als Klassen zu implementieren, da auf diese Weise die Methoden, die im Algorithmus immer wieder Verwendung finden, komfortabel zur Verfügung gestellt werden können. Da diese Methoden auf einem Objekt aufgerufen werden, erspart dies auch die Übergabe einiger Parameter.\\
+Die Klasse $\texttt{Point}$ speichert für einen Punkt seine $x$- und seine $y$-Koordinate. Weiterhin stellt sie Methoden zur Verfügung, welche überprüfen, ob ein übergebener Punkt links bzw. rechts vom betrachteten Punkt liegt. Außerdem existiert die Methode \texttt{is\_above(self, line)}, die überprüft, ob der Punkt überhalb der übergegebenen Strecke liegt.\\
+Zur Repräsentation von Strecken dient Klasse \texttt{Line}, welche sowohl einen Start- als auch einen Endpunkt speichert. Die Methode 
+\texttt{eval(self, x\_coord)} ermittelt für die übergebene $x$-Koordinate die zugehörige $y$-Koordinate auf der durch die Strecke induzierte Linie.\\
 Die Klasse \texttt{Trapezoid} speichert zum einen die Strecken, die es nach oben und unten begrenzen, und zum anderen die Punkte, welche die Lage der linken bzw. der rechten Kante des Trapezes bestimmen. Weiterhin werden für jedes Trapez seine Nachbarn gespeichert.
 \begin{figure}[h!]
 	\centering
@@ -97,17 +97,17 @@ Die Klasse \texttt{Trapezoid} speichert zum einen die Strecken, die es nach oben
 	\caption{Ein Trapez mit vier Nachbarn}
 	\label{fig:neighbors}
 \end{figure}
-In Abbildung \ref{fig:neighbors} ist ein Trapez $A$ gezeigt, welches vier Nachbarn hat. Wir haben uns dazu entschlossen, die Nachbarn diese entsprechend der Himmelsrichtungen zu bezeichnen. Somit ist $B$ der nordöstliche , C der südöstliche, D der südwestliche und E der nordwestliche Nachbar.
+In Abbildung \ref{fig:neighbors} ist ein Trapez $A$ gezeigt, welches vier Nachbarn hat. Wir haben uns dazu entschlossen, die Nachbarn diese entsprechend der Himmelsrichtungen zu bezeichnen, die sich durch den linken bzw. rechten Endpunkt ergeben. Somit ist $B$ der nordöstliche , C der südöstliche, D der südwestliche und E der nordwestliche Nachbar.
 
 \subsection{Trapezzerlegung und Suchstruktur}
 
-Als Datenstruktur für die Trapezzerlegung \T haben wir die Python-Klasse \texttt{set} verwendet, da diese zahlreiche Methoden für mathematische Mengen zur Verfügung stellt. \T enthält somit lediglich die Menge aller zur Trapezzerlegung gehörenden Trapeze.\\
-Für die Suchstruktur \D haben wir die neue Klasse \texttt{Tree} entworfen. Ein Objekt dieser Klasse hat zum einen ein Attribut, welches den 'Inhalt' des Knotens speichert. Dabei kann es sich um eine Strecke, einen Punkt oder ein Trapez handeln. Zum anderen speichert es einen Links- und einen Rechtsverweis auf sein linkes bzw. rechtes Kind. Soll für einen Anfragepunkt $\rho$ ermittelt werden, in welchem Trapez dieser liegt, wird die Suchstruktur beginnend mit dem Wurzelknoten hinabgestiegen und dabei bei Punkten ermittelt, ob $\rho$ links oder rechts davon liegt, und bei Strecken, ob $\rho$ darüber oder darunter liegt. Entsprechend wird dann rekursiv mit dem linken bzw. rechten Kindknoten fortgefahren. Wird ein Blattknoten und damit ein Trapez erreicht, wird dieses als das den Punkt $\rho$ beinhaltendes Trapez als Antwort zurückgeliefert.
+Als Datenstruktur für die Trapezzerlegung \T haben wir die Python-Klasse \texttt{set} verwendet, da diese zahlreiche Methoden für mathematische Mengen zur Verfügung stellt. Diese Methoden erreichen größenordnungsmäßig das Optimum (Laufzeit erwartet in der Größe der Mengen, Abfrage ob ein Element der Menge ist erwartet $\mathcal{O}(1)$). \T enthält somit lediglich die Menge aller zur Trapezzerlegung gehörenden Trapeze.\\
+Für die Suchstruktur \D haben wir die neue Klasse \texttt{Tree} entworfen. Ein Objekt dieser Klasse hat zum einen ein Attribut, welches den Inhalt des Knotens (eine Strecke, ein Punkt oder eine Linie) speichert. Zum anderen speichert es einen Links- und einen Rechtsverweis auf sein linkes bzw. rechtes Kind. Das umschließende Trapez für einen Anfragepunkt $\rho$ liefert die Methode \texttt{find(self, point)}. Diese steigt den Baum hinab und prüft bei Punkten, ob $\rho$ links oder rechts davon liegt, bei Strecken ob $\rho$ darüber oder darunter liegt. Gemäß des Ergebnisses wird mit dem linken oder rechten Kind fortgefahren. Wird ein Blattknoten und damit ein Trapez erreicht, wird dieses als Antwort zurückgeliefert.
 
 \section{Konstruktionsalgorithmus}
 
-Zu Beginn der Konstruktion der Trapezzerlegung wird zunächst eine ausreichend große Bounding Box erzeugt und sowohl in \T als auch in \D eingefügt. Anschließend werden zwecks Randomisierung die Eingabestrecken in zufällige Reihenfolge gebracht. Daraufhin wird mit der Hauptschleife begonnen, in der pro Iteration eine Strecke zur Trapezzerlegung hinzugefügt wird. 
-Innerhalb der Schleife wird zunächst ermittelt, welche der bereits in die Trapezzerlegung eingefügten Trapeze von der neu einzufügenden Strecke geschnitten werden. Handelt es sich dabei bloß um ein Trapez, ist eine andere Behandlung erforderlich als wenn es sich um mehrere Trapeze handelt. Abbildung \ref{fig:one_trap_inside} zeigt den Fall, dass die neu eingefügt Strecke $\overline{pq}$ innerhalb exakt eines Trapezes liegt.
+Zu Beginn der Konstruktion der Trapezzerlegung wird zunächst eine Bounding Box erzeugt und sowohl in \T als auch in \D eingefügt. Anschließend werden zwecks Randomisierung die Eingabestrecken in zufällige Reihenfolge gebracht. Daraufhin wird mit der Hauptschleife begonnen, in der pro Iteration eine Strecke zur Trapezzerlegung hinzugefügt wird.\\
+Innerhalb der Schleife wird zunächst ermittelt, welche der bereits in die Trapezzerlegung eingefügten Trapeze geschnitten werden. Handelt es sich dabei bloß um ein Trapez, ist eine andere Behandlung erforderlich als wenn es sich um mehrere Trapeze handelt. Abbildung \ref{fig:one_trap_inside} zeigt den Fall, dass die neu eingefügt Strecke $\overline{pq}$ innerhalb exakt eines Trapezes liegt.
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}[scale=0.8]
@@ -178,7 +178,7 @@ Tritt der Fall auf, dass die neu eingefügte Strecke mehrere Trapeze $\Delta_1, 
 	\caption{Die neue Strecke liegt innerhalb mehrerer Trapeze}
 	\label{fig:multiple_traps}
 \end{figure}\\
-Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschließend werden überhalb und unterhalb der Strecke Trapeze erzeugt und gegebenenfalls verschmolzen. Zum Abschluss muss ein weiteres Trapez $G$ rechts vom Punkt $q$ erzeugt werden. Dies führt zu der in Abbildung \ref{fig:multiple_traps_2} dargestellten Situation.
+Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschließend werden überhalb und unterhalb der Strecke Trapeze erzeugt und gegebenenfalls erweitert. Zum Abschluss muss ein weiteres Trapez $G$ rechts vom Punkt $q$ erzeugt werden. Dies führt zu der in Abbildung \ref{fig:multiple_traps_2} dargestellten Situation.
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}[scale=0.8]
@@ -222,27 +222,34 @@ Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschlie�
 	\label{fig:multiple_traps_2}
 \end{figure}\\
 In unserem Algorithmus wird zunächst Trapez $A$ erstellt. Dessen westliche Nachbarn werden auf die Nachbarn von $\Delta_1$ gesetzt. Entsprechende Rückverweise werden ebenfalls gesetzt.
-Anschließend beginnen wir mit einer Schleife, welche über die $\Delta_i$ Trapeze iteriert. Da die Behandlung oberhalb und unterhalb der Strecke analog erfolgt, wird im Folgenden nur die Behandlung der Trapeze oberhalb der Strecke dargelegt. Zu Beginn erzeugen wir ein neues Trapez $\Delta_u$, welches auf den verbleibenden Teil von $\Delta_1$ rechts von $p$ und oberhalb von der Strecke gesetzt wird. Dieses Trapez erhält Trapez $A$ als nordwestlichen Nachbarn und als nordöstlichen Nachbarn den nordöstlichen Nachbarn von $\Delta_1$. Anschließend betrachten wir das Trapez $\Delta_2$ oberhalb der Strecke und stellen fest, dass die obere Kante des Trapezes die gleiche ist wie bei $\Delta_u$. Somit müssen wir unser bisheriges $\Delta_u$ mit dem betrachteten Ausschnitt von $\Delta_2$ verschmelzen. Auch an dieser Stelle muss der nordöstliche Nachbar verändert werden, er wird auf den nordöstlichen Nachbarn von $\Delta_2$ gesetzt. Nun betrachten wir Trapez $\Delta_3$ oberhalb der Strecke. Wir stellen fest, dass hier die oberen Begrenzungskanten ungleich sind. Somit lassen wir unser bisheriges $\Delta_u$ unverändert und erstellen ein neues Trapez $\Delta_u$, welches einen Südwestverweis auf das bisherige $\Delta_u$ und einen Nordwestverweis auf den nordwestlichen Nachbarn von Trapez $\Delta_3$ erhält. Auch hier müsste der nordöstliche Nachbar gesetzt werden, diesmal auf den jedoch nicht existierenden nordöstlichen Nachbarn von Trapez $\Delta_3$. Wie immer werden auch hier die enstprechenden Rückverweise gesetzt. Auf diese Weise verfahren wir weiter, bis wir beim letzten Trapez angelangt sind.
+Anschließend beginnen wir mit einer Schleife, welche über die $\Delta_i$ Trapeze iteriert. Da die Behandlung oberhalb und unterhalb der Strecke analog erfolgt, wird im Folgenden nur die Behandlung der Trapeze oberhalb der Strecke dargelegt. Zu Beginn erzeugen wir ein neues Trapez $\Delta_u$, welches auf den verbleibenden Teil von $\Delta_1$ rechts von $p$ und oberhalb von der Strecke gesetzt wird. Dieses Trapez erhält Trapez $A$ als nordwestlichen Nachbarn und als nordöstlichen Nachbarn den nordöstlichen Nachbarn von $\Delta_1$. Anschließend betrachten wir das Trapez $\Delta_2$ oberhalb der Strecke und stellen fest, dass die obere Kante des Trapezes die gleiche ist wie bei $\Delta_u$. Somit müssen wir unser bisheriges $\Delta_u$ um den betrachteten Ausschnitt von $\Delta_2$ erweitern. Auch an dieser Stelle muss der nordöstliche Nachbar verändert werden, er wird auf den nordöstlichen Nachbarn von $\Delta_2$ gesetzt. Nun betrachten wir Trapez $\Delta_3$ oberhalb der Strecke. Wir stellen fest, dass hier die oberen Begrenzungskanten ungleich sind. Somit lassen wir unser bisheriges $\Delta_u$ unverändert und erstellen ein neues Trapez $\Delta_u$, welches einen Südwestverweis auf das bisherige $\Delta_u$ und einen Nordwestverweis auf den nordwestlichen Nachbarn von Trapez $\Delta_3$ erhält. Auch hier müsste der nordöstliche Nachbar gesetzt werden, diesmal auf den jedoch nicht existierenden nordöstlichen Nachbarn von Trapez $\Delta_3$. Wie immer werden auch hier die enstprechenden Rückverweise gesetzt. Auf diese Weise verfahren wir weiter, bis wir beim letzten Trapez angelangt sind.
 Dort muss sowohl das rechteste Trapez rechtsseitig von Punkt $q$ erstellt werden als auch ermittelt werden, wie mit dem Ausschnitt von $\Delta_n$ links von Punkt $q$ verfahren werden muss. Es kann zum einen der Fall eintreten, dass das Trapez links von $q$ oberhalb der Strecke die gleiche obere Kante wie das letzte $\Delta_u$ hat. In diesem Fall werden beide Trapeze verschmolzen. Andernfalls werden sowohl das letzte $\Delta_u$ als auch der betrachtete Teil von $\Delta_n$ \T hinzugefügt werden. Das Setzen der Nachbarn erfolgt analog zu der Behandlung auf der linken Seite bei $\Delta_1$.\\
 Tritt der Fall ein, dass $p$ auf der linken Grenze von $\Delta_1$ liegt oder $q$ auf der rechten Grenze von $q$ muss dort das linkeste bzw. das rechteste Trapez nicht erzeugt werden. Hier ist also ebenfalls eine Fallunterscheidung notwendig.
 
 \section{Facettenzuweisung}
 Ziel des Projektes ist es, die Indizes der Punkte innerhalb einer Facette in eine Zeile der Ausgabedatei zu schreiben. Problematisch ist hierbei, dass als Eingabedaten nur die Strecken, die die Ebene unterteilen zur Verfügung stehen. Eine Zuordnung der jeweiligen Seiten der Strecken zu Facetten ist dagegen nicht gegeben. Somit muss die Zuordnung der erstellten Trapeze zu der passenden Facette noch berechnet werden. Hier ist die zentrale Beobachtung, dass zwei Trapeze in einer Facette liegen, wenn sie einander über Nachbarschaftsbeziehungen (evtl. mit Zwischentrapezen) erreichen können. Ein geeigneter Algorithmus ist also
 
-\begin{lstlisting}
-	assign face(trapezoid, face):
-		if trapezoid is not assigned a face:
-			assign trapezoid to face
-			for all neighbors of trapezoid:
-				assign face(neighbor, face)
-	
-	assign faces(T):
-		for trapezoid in T:
-			face = new Face
-			assign face(trapezoid, face)
-\end{lstlisting}
+\begin{algorithmic}[1]
+\State Input: trapezoid t, face f
+\Function{assign face}{t, f}
+	\If {t has no face assigned}
+		\State assign t to f
+		\ForAll {neighbors of t}
+			\State \Call{assign face}{n, f}
+		\EndFor
+	\EndIf
+\EndFunction
 
-In unserer Implementierung ist eine Facette eine inkrementierende Integer-Variable, die dem Trapez-Objekt als Attribut hinzugefügt werden. Damit ist es in konstanter Zeit möglich, von dem Trapez auf die Facette zu schließen. Da die Zuweisung in jeder Facette nur einmal gestartet wird und innerhalb dieser Facette höchstens von $4$ Nachbarn 'betreten' wird, ist die Laufzeit der Zuweisung $\mathcal{O}(\abs{T})$ und damit $\mathcal{O}(m)$, wobei $m$ die Anzahl der Strecken ist.
+\State Input: Decomposition T
+\Function{assign faces}{T}
+	\ForAll {$t \in T$}
+		\State f $\gets$ new Face
+		\State \Call{assign face}{t, f}
+	\EndFor
+\EndFunction
+\end{algorithmic}
+
+In unserer Implementierung ist eine Facette eine inkrementierende Integer-Variable (die, anders als hier vereinfachend dargestellt, nur inkrementiert wird wenn nötig), die dem Trapez-Objekt als Attribut hinzugefügt werden. Damit ist es in konstanter Zeit möglich, von dem Trapez auf die Facette zu schließen. Da die Zuweisung in jeder Facette nur einmal gestartet wird und innerhalb dieser Facette höchstens von $4$ Nachbarn 'betreten' wird, ist die Laufzeit der Zuweisung $\mathcal{O}(\abs{T})$ und damit $\mathcal{O}(m)$, wobei $m$ die Anzahl der Strecken ist.
 
 \section{Punktgruppierung}
 Um die Punkte in der selben Facette in eine Zeile schreiben zu können, müssen sie zunächst nach Facette gruppiert werden. Die Facetten, zu denen die $l$ Abfragepunkte gehören, können in erwartet $\mathcal{O}(l \log m)$ bestimmt werden, wobei $m$ die Anzahl der Strecken ist.
@@ -250,12 +257,13 @@ Um die Punkte in der selben Facette in eine Zeile schreiben zu können, müssen 
 \begin{algorithmic}[1]
 \State Input: Search structure D, query points Q
 \State Output: $Q_1 \dots Q_F$ sets of points for each face
-\State \texttt{group points}
-\ForAll {$q \in Q$}
-	\State $t \gets$ \Call {D.find\_trapezoid}{q}
-	\State $f \gets$ face of $t$
-	\State add $q$ to $Q_f$
-\EndFor
+\Function{group points}{D, Q}
+	\ForAll {$q \in Q$}
+		\State $t \gets$ \Call {D.find\_trapezoid}{q}
+		\State $f \gets$ face of $t$
+		\State add $q$ to $Q_f$
+	\EndFor
+\EndFunction
 \end{algorithmic}
 
 Die einzelnen Gruppen werden in unserem Programm als Python \texttt{list} vorgehalten, die ein Anfügen eines Punktes in $\mathcal{O}(1)$ erlauben. Um ohne explizite Repräsentation der Facetten (es gibt kein Facetten-Objekt oder Ähnliches) von der Integer-Variable, die den Facettenindex angibt auf die entsprechende Liste zu kommen, werden die listen in einer Hashmap (Python-\texttt{dictionary}) mit Facettenindex gespeichert, was das Finden der gesuchten Liste in Erwartet $\mathcal{O}(1)$ ermöglicht.
