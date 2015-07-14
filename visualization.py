@@ -15,10 +15,11 @@ window, canv = None, None
 def make_surface():
 	global window, canv
 	
-	window = tk.Tk()
-	window.resizable(tk.FALSE, tk.FALSE)
-	canv = tk.Canvas(window, width = canvasSizeX, height = canvasSizeY, background='white')
-	canv.pack()
+	if window is None or canv is None:
+		window = tk.Tk()
+		window.resizable(tk.FALSE, tk.FALSE)
+		canv = tk.Canvas(window, width = canvasSizeX, height = canvasSizeY, background='white')
+		canv.pack()
 
 # Show the drawn canvas, then purge the global variables window and canv
 def show_surface():
@@ -46,47 +47,44 @@ def show_surface():
 
 # point is a vis.Point object
 def draw_point(point, color='black'):
-	if window is None or canv is None:
-		make_surface() # Make sure there is a surface to draw on
+	make_surface() # Make sure there is a surface to draw on
 	
 	x = point.x
 	y = canvasSizeY - point.y
 	canv.create_oval(x-0.2, y-0.2, x+0.2, y+0.2, fill=color)
 
 # Draw line from p to q, where p and q are vis.Point objects
-def draw_line(p, q, color='black'):
+def draw_line(line, color='black'):
 	if window is None or canv is None:
 		make_surface() # Make sure there is a surface to draw on
 	
-	px = p.x
-	py = canvasSizeY - p.y
-	qx = q.x
-	qy = canvasSizeY - q.y
+	px = line.p.x
+	py = canvasSizeY - line.p.y
+	qx = line.q.x
+	qy = canvasSizeY - line.q.y
 	canv.create_line(px, py, qx, qy, width = 2, fill=color)
 
 # top and bot are vis.Line objects, leftp and rightp are vis.Point objects
-def draw_trapezoid(top, bot, leftp, rightp, color='black'):
-	if window is None or canv is None:
-		make_surface() # Make sure there is a surface to draw on
+def draw_trapezoid(trap, color='black'):
+	make_surface() # Make sure there is a surface to draw on
 	
 	# Calculate corner points
-	nw = Point(leftp.x, top.eval(leftp.x))
-	ne = Point(rightp.x, top.eval(rightp.x))
-	sw = Point(leftp.x, bot.eval(leftp.x))
-	se = Point(rightp.x, bot.eval(rightp.x))
+	nw = Point(trap.leftp.x, trap.top.eval(trap.leftp.x))
+	ne = Point(trap.rightp.x, trap.top.eval(trap.rightp.x))
+	sw = Point(trap.leftp.x, trap.bot.eval(trap.leftp.x))
+	se = Point(trap.rightp.x, trap.bot.eval(trap.rightp.x))
 	
-	draw_line(nw, ne, color=color)
-	draw_line(ne, se, color=color)
-	draw_line(se, sw, color=color)
-	draw_line(sw, nw, color=color)
+	draw_line(Line(nw, ne), color=color)
+	draw_line(Line(ne, se), color=color)
+	draw_line(Line(se, sw), color=color)
+	draw_line(Line(sw, nw), color=color)
 
 # Draws the entire trapezoid decomposition T
 def draw_decomposition(T, D=None, queries=[]):
-	if window is None or canv is None:
-		make_surface()
+	make_surface()
 	
 	for trapezoid in T:
-		draw_trapezoid(trapezoid.top, trapezoid.bot, trapezoid.leftp, trapezoid.rightp)
+		draw_trapezoid(trapezoid)
 		#TODO draw face number if present
 		#~ if hasattr(trapezoid, 'face_index'):
 			#~ x_pos = (trapezoid.leftp.x + trapezoid.rightp.x)/2
@@ -105,27 +103,25 @@ def draw_decomposition(T, D=None, queries=[]):
 		
 		if not hasattr(trap, 'color'):
 			trap.color = colors[index % len(colors)]
-		draw_trapezoid(top, bot, leftp, rightp, color=trap.color)
+		draw_trapezoid(Trapezoid(top, bot, leftp, rightp), color=trap.color)
 		draw_point(q, color=trap.color)
 
 # Draws lists of vertices, edges and query points
 # Query points are drawn in blue for clarity
 def draw_scenario(vertices, edges, queries):
-	if window is None or canv is None:
-		make_surface() # Make sure there is a surface to draw on
+	make_surface() # Make sure there is a surface to draw on
 	
 	for vertex in vertices:
 		draw_point(vertex)
 	for edge in edges:
-		draw_line(edge.p, edge.q)
+		draw_line(edge)
 	for query in queries:
 		draw_point(query, color='blue')
 
 # Draw the road map of T. This needs to be calculated beforehand and be
 # accessible via the Trapezoid.center attribute.
 def draw_road_map(T):
-	if window is None or canv is None:
-		make_surface() # Make sure there is a surface to draw on
+	make_surface() # Make sure there is a surface to draw on
 	
 	points = []
 	lines = []
@@ -133,16 +129,15 @@ def draw_road_map(T):
 		draw_point(trap.center)
 		for neighbor in trap.center.neighbors:
 			draw_point(neighbor)
-			draw_line(trap.center, neighbor)
+			draw_line(Line(trap.center, neighbor))
 
 # Draw a path
 def draw_path(path):
-	if window is None or canv is None:
-		make_surface() # Make sure there is a surface to draw on
+	make_surface() # Make sure there is a surface to draw on
 	
 	for index, point in enumerate(path[:-1]):
 		draw_point(point, color='blue')
-		draw_line(point, path[(index+1) % len(path)])
+		draw_line(Line(point, path[(index+1) % len(path)]))
 	draw_point(path[-1], color='blue')
 
 
