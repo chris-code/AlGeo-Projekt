@@ -61,6 +61,37 @@ Da die Programmiersprache Python 3 eine Vielzahl von komfortablen Datenstrukture
 Wie in der Aufgabenstellung angegeben, gehen wir im Rahmen dieses Projektes davon aus, dass sich alle Eingabepunkte in allgemeiner Lage befinden, also ganzzahlige Koordinaten haben, und keine zwei Punkte sich dieselbe x-Koordinate teilen. Dieser Umstand gewährleistet unter anderem, dass alle Nachbarn der Trapeze stets eindeutig definiert sind.\\
 Darüber hinausgehend nehmen wir an, dass sich der Startpunkt $p$ einer Strecke stets links von ihrem Endpunkt $q$ befindet. Diese Konvention führt zu einer nicht zu vernachlässigenden Verringerung benötigter Fallunterscheidungen bei der Erstellung der Trapezzerlegung.
 
+Um die Trapezzerlegung zu konstruieren ist es erforderlich, alle von einer Linie geschnittenen Trapeze zu finden. Dies bedarf besonderer Behandlung wenn zwei Strecken den selben Startpunkt haben. Um diesen herum liegen dann schon mindestens $2$ Trapeze, wie in Abbildung \ref{fig:intersected-trapezoids} dargestellt ist. Natürlich soll als erstes geschnittenes Trapez das rechte, 'echt' geschnittene gefunden werden. Hierfür könnte man sich entscheiden, bei Gleichheit der x-coordinaten rechts weiterzusuchen. Problematisch ist aber die Entscheidung, ob man im oberen oder unteren rechten Trapez suchen muss. Man könnte dies über die Winkel der ausgehenden Strecken eines Punktes lösen, die sich jeder Punkt dann merken müsste. Einfacher wird dies aber, wenn man ein minimales Verhältnis von Abstand der Punkte der Zerlegung zu Länge der Strecken annimmt. Dann kann man einfach nach einem Punkt suchen, der auf der Strecke minimal hinter dem Startpunkt liegt, was in der Abbildung \ref{fig:intersected-trapezoids} durch ein Kreuz angedeutet ist. Für diese vereinfachte Variante haben wir uns entschieden.
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=0.6]
+		\begin{scope}[thick]
+			\node (n1) at (2,6) {\bul};
+			\node (n2) at (4,2) {\bul};
+			\node (n3) at (5,4) {\bul};
+			\node (n4) at (6,7) {\bul};
+			\node (n5) at (8,2.5) {\bul};
+			\node (n6) at (9,5) {\bul};
+			\node (2eps) at (2.3,5.8) {$\times$};
+		
+			\draw (0,0) to (11,0) to (11,8) to (0,8) to (0,0);
+			\draw (n1) to (n4);
+			\draw (n4) to (n6);
+			\draw (n2) to (n5);
+			\draw[gray] (n1) to (n3);
+		\end{scope}
+		\begin{scope}[dashed,thick]
+			\drawAtX{n1}{0}{8};
+			\drawAtX{n2}{0}{6.5};
+			\drawAtX{n4}{2.3}{8};
+			\drawAtX{n5}{0}{5.6};
+			\drawAtX{n6}{0}{8};
+		\end{scope}
+	\end{tikzpicture}
+	\caption{Illustration zum Auffinden geschnittener Trapeze}
+	\label{fig:intersected-trapezoids}
+\end{figure}
+
 \section{Objekte und Datenstrukturen}
 
 Im Folgenden wird aufgeführt, welche Datenstrukturen zur Realisierung der Trapezzerlegung entwickelt wurden.
