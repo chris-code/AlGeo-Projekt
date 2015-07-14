@@ -34,6 +34,9 @@
 \newcommand{\T}{\ensuremath{\mathcal{T}} }
 \newcommand{\D}{\ensuremath{\mathcal{D}} }
 \newcommand{\bul}{\ensuremath{\bullet}}
+\newcommand{\drawAtX}[3]{\draw (#1 |- 0,#2) to (#1 |- 5,#3)}
+
+%\tikzset{every picture/.style=very thick}
 
 \title{Algorithmische Geometrie Projekt \\ Trapezzerlegung}
 \author{Phil Yannick Schrör \and Christian Mielers}
@@ -63,71 +66,75 @@ Zunächst wird an dieser Stelle aufgeführt, welche Datenstrukturen zur Realisie
 
 Wir haben uns dazu entschlossen, die geometrischen Objekte als Klassen zu implementieren, da auf diese Weise die Methoden, die im Algorithmus immer wieder Verwendung finden, komfortabel zur Verfügung gestellt werden können. Da diese Methoden auf einem Objekt aufgerufen werden, erspart dies auch die Übergabe einiger Parameter.\\
 Die Klasse $\texttt{Point}$ speichert für einen Punkt seine $x$- und seine $y$-Koordinate. Weiterhin stellt sie Methoden zur Verfügung, welche überprüfen, ob ein übergebener Punkt links bzw. rechts vom betrachteten Punkt liegt. Außerdem existiert die Methode \texttt{is\_above(self, line)}, die überprüft, ob der Punkt überhalb der übergegebenen Strecke liegt.\\
-Zur Repräsentation von Strecken dient Klasse \texttt{Line}, welche sowohl einen Start- als auch einen Endpunkt speichert. Die Methode 
-\texttt{eval(self, x\_coord)} ermittelt für die übergebene $x$-Koordinate die zugehörige $y$-Koordinate auf der durch die Strecke induzierte Linie.\\
+Zur Repräsentation von Strecken dient die Klasse \texttt{Line}, welche sowohl einen Start- als auch einen Endpunkt speichert. Die Methode 
+\texttt{eval(self, x\_coord)} ermittelt für die übergebene $x$-Koordinate die zugehörige $y$-Koordinate auf der durch die Strecke induzierten Linie.\\
 Die Klasse \texttt{Trapezoid} speichert zum einen die Strecken, die es nach oben und unten begrenzen, und zum anderen die Punkte, welche die Lage der linken bzw. der rechten Kante des Trapezes bestimmen. Weiterhin werden für jedes Trapez seine Nachbarn gespeichert.
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}[scale=0.8]
-		\node (1) at (0,0) {\bul};
-		\node (2) at (2,1.3) {\bul};
-		\node (3) at (5,-0.1) {\bul};
-		\node (0) at (-2,-0.2) {\bul};
+		\begin{scope}[very thick]
+			\node (1) at (0,0) {\bul};
+			\node (2) at (2,1.3) {\bul};
+			\node (3) at (5,-0.1) {\bul};
+			\node (0) at (-2,-0.2) {\bul};
 		
-		\draw[-,very thick,blue] (-3,1.87) to (6,2.9);
-		\draw[-,very thick,blue] (-3,-1.43) to (6,-2);
-		\draw[-,very thick,blue] (0) to (1);
-		\draw[-,very thick,blue] (2) to (3);
-		\draw[-,very thick] (0,-1.6) to (0,2.2);
-		\draw[-,very thick] (2,-1.7) to (2,2.5);
-		\draw[-,very thick] (5,-1.9) to (5,2.8);
-		\draw[-,very thick] (-2,-1.45) to (-2,2);
+			\draw[-,blue] (-3,1.87) to (6,2.9);
+			\draw[-,blue] (-3,-1.43) to (6,-2);
+			\draw[-,blue] (0) to (1);
+			\draw[-,blue] (2) to (3);
+			\draw[-] (0,-1.6) to (0,2.2);
+			\draw[-] (2,-1.7) to (2,2.5);
+			\draw[-] (5,-1.9) to (5,2.8);
+			\draw[-] (-2,-1.45) to (-2,2);
 		
-		\node (A) at (1,0.5) {$A$};
-		\node (B) at (3.5,1.6) {$B$};
-		\node (C) at (3.5,-0.5) {$C$};
-		\node (D) at (-1,-0.7) {$D$};
-		\node (E) at (-1,1) {$E$};
+			\node (A) at (1,0.5) {$A$};
+			\node (B) at (3.5,1.6) {$B$};
+			\node (C) at (3.5,-0.5) {$C$};
+			\node (D) at (-1,-0.7) {$D$};
+			\node (E) at (-1,1) {$E$};
+		\end{scope}
 	\end{tikzpicture}
 	\caption{Ein Trapez mit vier Nachbarn}
 	\label{fig:neighbors}
 \end{figure}
-In Abbildung \ref{fig:neighbors} ist ein Trapez $A$ gezeigt, welches vier Nachbarn hat. Wir haben uns dazu entschlossen, die Nachbarn diese entsprechend der Himmelsrichtungen zu bezeichnen, die sich durch den linken bzw. rechten Endpunkt ergeben. Somit ist $B$ der nordöstliche , C der südöstliche, D der südwestliche und E der nordwestliche Nachbar.
+In Abbildung \ref{fig:neighbors} ist ein Trapez $A$ gezeigt, welches vier Nachbarn hat. Wir haben uns dazu entschlossen, die Nachbarn entsprechend der Himmelsrichtungen zu bezeichnen, die sich durch den linken bzw. rechten Endpunkt ergeben. Somit ist $B$ der nordöstliche , C der südöstliche, D der südwestliche und E der nordwestliche Nachbar von $A$.
 
 \subsection{Trapezzerlegung und Suchstruktur}
 
-Als Datenstruktur für die Trapezzerlegung \T haben wir die Python-Klasse \texttt{set} verwendet, da diese zahlreiche Methoden für mathematische Mengen zur Verfügung stellt. Diese Methoden erreichen größenordnungsmäßig das Optimum (Laufzeit erwartet in der Größe der Mengen, Abfrage ob ein Element der Menge ist erwartet $\mathcal{O}(1)$). \T enthält somit lediglich die Menge aller zur Trapezzerlegung gehörenden Trapeze.\\
-Für die Suchstruktur \D haben wir die neue Klasse \texttt{Tree} entworfen. Ein Objekt dieser Klasse hat zum einen ein Attribut, welches den Inhalt des Knotens (eine Strecke, ein Punkt oder eine Linie) speichert. Zum anderen speichert es einen Links- und einen Rechtsverweis auf sein linkes bzw. rechtes Kind. Das umschließende Trapez für einen Anfragepunkt $\rho$ liefert die Methode \texttt{find(self, point)}. Diese steigt den Baum hinab und prüft bei Punkten, ob $\rho$ links oder rechts davon liegt, bei Strecken ob $\rho$ darüber oder darunter liegt. Gemäß des Ergebnisses wird mit dem linken oder rechten Kind fortgefahren. Wird ein Blattknoten und damit ein Trapez erreicht, wird dieses als Antwort zurückgeliefert.
+Als Datenstruktur für die Trapezzerlegung \T haben wir die Python-Klasse \texttt{set} verwendet, da diese zahlreiche Methoden für mathematische Mengen zur Verfügung stellt. Diese Methoden erreichen größenordnungsmäßig das Optimum (Laufzeit erwartet in der Größe der Mengen, Abfrage ob ein Element der Menge ist erwartet $\mathcal{O}(1)$). \T enthält lediglich die Menge aller zur Trapezzerlegung gehörenden Trapeze.\\
+Für die Suchstruktur \D haben wir die neue Klasse \texttt{Tree} entworfen. Ein Objekt dieser Klasse hat zum einen ein Attribut, welches den Inhalt des Knotens (eine Strecke, einen Punkt oder eine Linie) speichert. Zum anderen speichert es einen Links- und einen Rechtsverweis auf sein linkes bzw. rechtes Kind. Das umschließende Trapez für einen Anfragepunkt $\rho$ liefert die Methode \texttt{find(self, point)}. Diese steigt den Baum hinab und prüft bei Punkten, ob $\rho$ links oder rechts davon liegt, bei Strecken ob $\rho$ darüber oder darunter liegt. Gemäß des Ergebnisses wird mit dem linken oder rechten Kind fortgefahren. Wird ein Blattknoten und damit ein Trapez erreicht, wird dieses als Antwort zurückgeliefert.
 
 \section{Konstruktionsalgorithmus}
 
 Zu Beginn der Konstruktion der Trapezzerlegung wird zunächst eine Bounding Box erzeugt und sowohl in \T als auch in \D eingefügt. Anschließend werden zwecks Randomisierung die Eingabestrecken in zufällige Reihenfolge gebracht. Daraufhin wird mit der Hauptschleife begonnen, in der pro Iteration eine Strecke zur Trapezzerlegung hinzugefügt wird.\\
-Innerhalb der Schleife wird zunächst ermittelt, welche der bereits in die Trapezzerlegung eingefügten Trapeze geschnitten werden. Handelt es sich dabei bloß um ein Trapez, ist eine andere Behandlung erforderlich als wenn es sich um mehrere Trapeze handelt. Abbildung \ref{fig:one_trap_inside} zeigt den Fall, dass die neu eingefügt Strecke $\overline{pq}$ innerhalb exakt eines Trapezes liegt.
+Innerhalb der Schleife wird zunächst ermittelt, welche der bereits in die Trapezzerlegung eingefügten Trapeze von der einzufügenden Strecke geschnitten werden. Handelt es sich dabei um bloß ein Trapez, ist eine andere Behandlung erforderlich als wenn es sich um mehrere Trapeze handelt. Abbildung \ref{fig:one_trap_inside} zeigt den Fall, dass die neu eingefügt Strecke $\overline{pq}$ innerhalb exakt eines Trapezes liegt.
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}[scale=0.8]
-		\node (1) at (-1,1.3) {\bul};
-		\node (2) at (9,-1.95) {\bul};
+		\begin{scope}[thick]
+			\node (1) at (-1,1.3) {\bul};
+			\node (2) at (9,-1.95) {\bul};
 	
-		\draw[-] (-3,1) to (10,3);
-		\draw[-] (-3,-1) to (10,-2);
-		\draw[-] (1) to (-1,-1.1);
-		\draw[-] ( 2) to (9,2.79);
+			\draw[-] (-3,1) to (10,3);
+			\draw[-] (-3,-1) to (10,-2);
+			\draw[-] (1) to (-1,-1.1);
+			\draw[-] ( 2) to (9,2.79);
 		
-		\node (3) at (1,0) {\bul};
-		\node (4) at (7,0.5) {\bul};
-		\draw[-] (3) to (4);
-		\draw[-] (1,-1.3) to (1,1.57);
-		\draw[-] (7,-1.8) to (7,2.5);
+			\node (3) at (1,0) {\bul};
+			\node (4) at (7,0.5) {\bul};
+			\draw[-] (3) to (4);
+			\draw[-] (1,-1.3) to (1,1.57);
+			\draw[-] (7,-1.8) to (7,2.5);
 		
-		\node (A) at (0,0) {$A$};
-		\node (B) at (4,1.2) {$B$};
-		\node (C) at (4,-0.7) {$C$};
-		\node (D) at (8,0.5) {$D$};
-		\node (p) at (.7,-0.2) {$p$};
-		\node (q) at (7.3,0.4) {$q$};
+			\node (A) at (0,0) {$A$};
+			\node (B) at (4,1.2) {$B$};
+			\node (C) at (4,-0.7) {$C$};
+			\node (D) at (8,0.5) {$D$};
+			\node (p) at (.7,-0.2) {$p$};
+			\node (q) at (7.3,0.4) {$q$};
+		\end{scope}
 	\end{tikzpicture}
-	\caption{Die neue Strecke liegt innerhalb eines Polygons.}
+	\caption{Die neue Strecke liegt innerhalb eines Trapezes.}
 	\label{fig:one_trap_inside}
 \end{figure}\\
 Innerhalb dieses Falles gibt es neben dem dargestellten Fall noch drei weitere Fälle. Der Punkt $p$ könnte auf der linken Grenze von Trapez $A$ liegen, Punkt $q$ könnte auf der rechten Grenze von Trapez $D$ liegen und es könnte passieren, dass beide Fälle eintreten. Jeder dieser Fälle benötigt eine eigene Behandlung, da entweder Trapez $A$ nicht erzeugt werden muss, Trapez $D$ nicht erzeugt werden muss oder beide Trapeze nicht erzeugt werden müssen.\\
@@ -136,35 +143,37 @@ Tritt der Fall auf, dass die neu eingefügte Strecke mehrere Trapeze $\Delta_1, 
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}[scale=0.8]
-		\node (1) at (0,0) {\bul};
-		\node (2) at (4,-2) {\bul};
-		\node (3) at (5,1) {\bul};
-		\node (4) at (9,2) {\bul};
-		\node (5) at (12,-1) {\bul};
-		\node (6) at (16,0) {};
+		\begin{scope}[thick]
+			\node (1) at (0,0) {\bul};
+			\node (2) at (4,-2) {\bul};
+			\node (3) at (5,1) {\bul};
+			\node (4) at (9,2) {\bul};
+			\node (5) at (12,-1) {\bul};
+			\node (6) at (16,0) {};
 		
-		\draw[-] (1) to (6,2);
-		\draw[-] (1) to (2);
-		\draw[-] (3) to (5,1.6);
-		\draw[-] (2) to (5);
-		\draw[-] (3) to (4);
-		\draw[-] (4) to (6);
+			\draw[-] (1) to (6,2);
+			\draw[-] (1) to (2);
+			\draw[-] (3) to (5,1.6);
+			\draw[-] (2) to (5);
+			\draw[-] (3) to (4);
+			\draw[-] (4) to (6);
 		
-		\draw[-] (2) to (4,1.3);
-		\draw[-] (3) to (5,-1.8);
-		\draw[-] (4) to (9,-1.35);
-		\draw[-] (5) to (12,1.1);
+			\draw[-] (2) to (4,1.3);
+			\draw[-] (3) to (5,-1.8);
+			\draw[-] (4) to (9,-1.35);
+			\draw[-] (5) to (12,1.1);
 		
-		\node (7) at (2.7,0) {\bul};
-		\node (8) at (10.6,0.5) {\bul};
-		\draw[-] (7) to (8);
-		\node (p) at (2.4,-0.2) {$p$};
-		\node (q) at (10.9,0.4) {$q$};
+			\node (7) at (2.7,0) {\bul};
+			\node (8) at (10.6,0.5) {\bul};
+			\draw[-,thick] (7) to (8);
+			\node (p) at (2.4,-0.2) {$p$};
+			\node (q) at (10.9,0.4) {$q$};
 		
-		\node (D1) at (1.7,-0.1) {$\Delta_1$};
-		\node (D2) at (4.5,-0.6) {$\Delta_2$};
-		\node (D3) at (7,-0.5) {$\Delta_3$};
-		\node (D4) at (10.5,-0.2) {$\Delta_4$};
+			\node (D1) at (1.7,-0.1) {$\Delta_1$};
+			\node (D2) at (4.5,-0.6) {$\Delta_2$};
+			\node (D3) at (7,-0.5) {$\Delta_3$};
+			\node (D4) at (10.5,-0.2) {$\Delta_4$};
+		\end{scope}
 	\end{tikzpicture}
 	\caption{Die neue Strecke liegt innerhalb mehrerer Trapeze}
 	\label{fig:multiple_traps}
@@ -180,21 +189,21 @@ Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschlie�
 		\node (5) at (12,-1) {\bul};
 		\node (6) at (16,0) {};
 		
-		\draw[-] (1) to (6,2);
-		\draw[-] (1) to (2);
-		\draw[-] (3) to (5,1.6);
-		\draw[-] (2) to (5);
-		\draw[-] (3) to (4);
-		\draw[-] (4) to (6);
+		\draw[-,thick] (1) to (6,2);
+		\draw[-,thick] (1) to (2);
+		\draw[-,thick] (3) to (5,1.6);
+		\draw[-,thick] (2) to (5);
+		\draw[-,thick] (3) to (4);
+		\draw[-,thick] (4) to (6);
 		
-		\draw[-] (2) to (4,0.05);
-		\draw[-] (3) to (5,0.18);
-		\draw[-] (4) to (9,0.38);
-		\draw[-] (5) to (12,1.1);
+		\draw[-,thick] (2) to (4,0.05);
+		\draw[-,thick] (3) to (5,0.18);
+		\draw[-,thick] (4) to (9,0.38);
+		\draw[-,thick] (5) to (12,1.1);
 		
 		\node (7) at (2.7,0) {\bul};
 		\node (8) at (10.6,0.5) {\bul};
-		\draw[-] (7) to (8);
+		\draw[-,thick] (7) to (8);
 		\node (p) at (2.4,-0.2) {$p$};
 		\node (q) at (10.9,0.4) {$q$};
 		
@@ -214,7 +223,7 @@ Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschlie�
 \end{figure}\\
 In unserem Algorithmus wird zunächst Trapez $A$ erstellt. Dessen westliche Nachbarn werden auf die Nachbarn von $\Delta_1$ gesetzt. Entsprechende Rückverweise werden ebenfalls gesetzt.
 Anschließend beginnen wir mit einer Schleife, welche über die $\Delta_i$ Trapeze iteriert. Da die Behandlung oberhalb und unterhalb der Strecke analog erfolgt, wird im Folgenden nur die Behandlung der Trapeze oberhalb der Strecke dargelegt. Zu Beginn erzeugen wir ein neues Trapez $\Delta_u$, welches auf den verbleibenden Teil von $\Delta_1$ rechts von $p$ und oberhalb von der Strecke gesetzt wird. Dieses Trapez erhält Trapez $A$ als nordwestlichen Nachbarn und als nordöstlichen Nachbarn den nordöstlichen Nachbarn von $\Delta_1$. Anschließend betrachten wir das Trapez $\Delta_2$ oberhalb der Strecke und stellen fest, dass die obere Kante des Trapezes die gleiche ist wie bei $\Delta_u$. Somit müssen wir unser bisheriges $\Delta_u$ um den betrachteten Ausschnitt von $\Delta_2$ erweitern. Auch an dieser Stelle muss der nordöstliche Nachbar verändert werden, er wird auf den nordöstlichen Nachbarn von $\Delta_2$ gesetzt. Nun betrachten wir Trapez $\Delta_3$ oberhalb der Strecke. Wir stellen fest, dass hier die oberen Begrenzungskanten ungleich sind. Somit lassen wir unser bisheriges $\Delta_u$ unverändert und erstellen ein neues Trapez $\Delta_u$, welches einen Südwestverweis auf das bisherige $\Delta_u$ und einen Nordwestverweis auf den nordwestlichen Nachbarn von Trapez $\Delta_3$ erhält. Auch hier müsste der nordöstliche Nachbar gesetzt werden, diesmal auf den jedoch nicht existierenden nordöstlichen Nachbarn von Trapez $\Delta_3$. Wie immer werden auch hier die enstprechenden Rückverweise gesetzt. Auf diese Weise verfahren wir weiter, bis wir beim letzten Trapez angelangt sind.
-Dort muss sowohl das rechteste Trapez rechtsseitig von Punkt $q$ erstellt werden als auch ermittelt werden, wie mit dem Ausschnitt von $\Delta_n$ links von Punkt $q$ verfahren werden muss. Es kann zum einen der Fall eintreten, dass das Trapez links von $q$ oberhalb der Strecke die gleiche obere Kante wie das letzte $\Delta_u$ hat. In diesem Fall werden beide Trapeze verschmolzen. Andernfalls werden sowohl das letzte $\Delta_u$ als auch der betrachtete Teil von $\Delta_n$ \T hinzugefügt werden. Das Setzen der Nachbarn erfolgt analog zu der Behandlung auf der linken Seite bei $\Delta_1$.\\
+Dort muss sowohl das rechteste Trapez rechtsseitig von Punkt $q$ erstellt werden als auch ermittelt werden, wie mit dem Ausschnitt von $\Delta_n$ links von Punkt $q$ zu verfahren ist. Es kann zum einen der Fall eintreten, dass das Trapez links von $q$ oberhalb der Strecke die gleiche obere Kante wie das letzte $\Delta_u$ hat. In diesem Fall werden beide Trapeze verschmolzen. Andernfalls werden sowohl das letzte $\Delta_u$ als auch der betrachtete Teil von $\Delta_n$ \T hinzugefügt. Das Setzen der Nachbarn erfolgt analog zu der Behandlung auf der linken Seite bei $\Delta_1$.\\
 Tritt der Fall ein, dass $p$ auf der linken Grenze von $\Delta_1$ liegt oder $q$ auf der rechten Grenze von $q$ muss dort das linkeste bzw. das rechteste Trapez nicht erzeugt werden. Hier ist also ebenfalls eine Fallunterscheidung notwendig.
 
 \section{Facettenzuweisung}
@@ -347,7 +356,77 @@ Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 
 \begin{itemize}
 \item Erstes Trapez finden (0.99p + 0.01q)
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=0.8]
+		\begin{scope}[thick]
+			\node (n1) at (2,6) {\bul};
+			\node (n2) at (4,2) {\bul};
+			\node (n3) at (5,4) {\bul};
+			\node (n4) at (6,7) {\bul};
+			\node (n5) at (8,2.5) {\bul};
+			\node (n6) at (9,5) {\bul};
+			\node (2eps) at (2.3,5.8) {$\times$};
+		
+			\draw (0,0) to (11,0) to (11,8) to (0,8) to (0,0);
+			\draw (n1) to (n4);
+			\draw (n4) to (n6);
+			\draw (n2) to (n5);
+			\draw[gray] (n1) to (n3);
+		\end{scope}
+		\begin{scope}[dashed,thick]
+			\drawAtX{n1}{0}{8};
+			\drawAtX{n2}{0}{6.5};
+			\drawAtX{n4}{2.3}{8};
+			\drawAtX{n5}{0}{5.6};
+			\drawAtX{n6}{0}{8};
+		\end{scope}
+	\end{tikzpicture}
+\end{figure}
 \item Wie werden mehrere gefundene Trapeze unterteilt?
+\item Wie Trapzen Facetten zugeteilt werden
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=0.8]
+		\begin{scope}[thick]
+			\draw (-2,-4) to (11,-4) to (11,5) to (-2,5) to (-2,-4);
+			
+			\node (n1) at (0,0) {\bul};
+			\node (n2) at (2,2) {\bul};
+			\node (n3) at (6,3) {\bul};
+			\node (n4) at (9,1) {\bul};
+			\node (n5) at (4,-2) {\bul};
+			\draw (n1) to (n2) to (n3) to (n4) to (n5) to (n1);
+		\end{scope}
+		
+		\begin{scope}[dashed]
+			\drawAtX{n1}{-4}{5};
+			\drawAtX{n2}{-1}{5};
+			\drawAtX{n3}{-0.8}{5};
+			\drawAtX{n4}{-4}{5};
+			\drawAtX{n5}{-4}{2.6};
+		\end{scope}
+		
+		\node (X) at (3,1) {$\times$};
+		\draw[->] (X) to (5,1.5) node[below]{$1$};
+		\draw[->] (5.2,1.5) to (7,1) node[below]{2};
+		\draw[->] (X) to (1.5,0.5) node[above]{3};
+		
+		\node[draw,rectangle] at (1.5,-0.1) {5};
+		\node[draw,rectangle] at (3,0.0) {5};
+		\node[draw,rectangle] at (7.8,0.9) {5};
+		\node[draw,rectangle] at (5,0.1) {5};
+		
+		\node[draw,rectangle] at (-1,1) {4};
+		\node[draw,rectangle] at (1,3) {4};
+		\node[draw,rectangle] at (4,4) {4};
+		\node[draw,rectangle] at (7.5,3.5) {4};
+		\node[draw,rectangle] at (10,1) {4};
+		\node[draw,rectangle] at (2,-2.5) {4};
+		\node[draw,rectangle] at (7,-2) {4};
+	\end{tikzpicture}
+\end{figure}
+\item Gruppen der Punkte anhand der Facetten
 \end{itemize}
 
 \end{document}
