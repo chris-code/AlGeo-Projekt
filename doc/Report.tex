@@ -58,6 +58,14 @@
 \item Punktgruppierung
 \end{itemize}
 
+\section{Annahmen}
+
+\begin{itemize}
+\item Allgemeine Lage
+\item Nur ganzzahlige Koordinaten
+\item ...
+\end{itemize}
+
 \section{Objekte und Datenstrukturen}
 
 Zunächst wird an dieser Stelle aufgeführt, welche Datenstrukturen zur Realisierung der Trapezzerlegung entwickelt wurden.
@@ -266,7 +274,7 @@ Um die Punkte in der selben Facette in eine Zeile schreiben zu können, müssen 
 \EndFunction
 \end{algorithmic}
 
-Die einzelnen Gruppen werden in unserem Programm als Python \texttt{list} vorgehalten, die ein Anfügen eines Punktes in $\mathcal{O}(1)$ erlauben. Um ohne explizite Repräsentation der Facetten (es gibt kein Facetten-Objekt oder Ähnliches) von der Integer-Variable, die den Facettenindex angibt auf die entsprechende Liste zu kommen, werden die listen in einer Hashmap (Python-\texttt{dictionary}) mit Facettenindex gespeichert, was das Finden der gesuchten Liste in Erwartet $\mathcal{O}(1)$ ermöglicht.
+Die einzelnen Gruppen werden in unserem Programm als Python \texttt{list} vorgehalten, die ein Anfügen eines Punktes in $\mathcal{O}(1)$ erlauben. Um ohne explizite Repräsentation der Facetten (es gibt kein Facetten-Objekt oder Ähnliches) von der Integer-Variable, die den Facettenindex angibt, zu der entsprechenden Liste zu gelangen, werden die Listen in einer Hashmap (Python-\texttt{dictionary}) mit Facettenindex gespeichert, so dass das Finden der gesuchten Liste in erwartet $\mathcal{O}(1)$ möglich ist.
 
 \section{Performance}
 Zum Testen der Performance wurden Testdatensätze generiert, die automatisch von einem weiteren Python3-Programm erstellt werden. Diese entsprechen der Form nach einem gescherten Lattenrost, exemplarisch dargestellt in Abbildung \ref{fig:generated_dataset}. Zusätzlich wird für jede Facette ein Abfragepunkt generiert, der an einem zufälligen Ort in der Facette liegt.
@@ -304,7 +312,7 @@ Auf derartigen Datensätzen unterschiedlicher Größe wurde die Laufzeit der 3 H
 	\label{fig:performance_plot}
 \end{figure}
 
-Hierbei lässt sich feststellen, dass alle 3 Werte näherungsweise linear wachsen. Ein leichter superlinearer Trend lässt sich allerdings visuell bei der Punktgruppierung erahnen. Die Trapezzerlegung ist mit einigem Abstand die langwierigste Operation, wobei hierbei sowieso der größte konstante Faktor zu erwarten wäre. Da die Lokalisierung eines Punktes in erwartet $\mathcal{O}(\log n)$ läuft, ist die erwartete Laufzeit für das Lokalisieren von $\mathcal{O}(n \log n)$. Dies entspricht auch der insgesammt erwarteten Laufzeit für den Gruppierungsteil, da das Gruppieren der lokalisierten Punkte über das Einfügen in ein \texttt{Python-Dictionary} in armortisierter konstanter Zeit realisiert ist.
+Hierbei lässt sich feststellen, dass alle 3 Werte näherungsweise linear wachsen. Ein leichter superlinearer Trend lässt sich allerdings visuell bei der Punktgruppierung erahnen. Die Trapezzerlegung ist mit einigem Abstand die langwierigste Operation, wobei hierbei ohnehin der größte konstante Faktor zu erwarten wäre. Da die Lokalisierung eines Punktes in erwartet $\mathcal{O}(\log n)$ läuft, ist die erwartete Laufzeit für das Lokalisieren in $\mathcal{O}(n \log n)$. Dies entspricht auch der insgesamt erwarteten Laufzeit für den Gruppierungsteil, da das Gruppieren der lokalisierten Punkte über das Einfügen in ein \texttt{Python-Dictionary} in armortisiert konstanter Zeit realisiert ist.
 
 \appendix
 \section{Programmnutzung}
@@ -341,7 +349,7 @@ Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 	\hline
 	Parameter & erforderlich & Bedeutung \\
 	\hline
-	in\_file & * & \pbox{10cm}{Der Pfad zur Eingabedatei, in der die Hindernisse und Start- sowie End-punkte der zu findenden Pfade gespeichert sind} \\
+	in\_file & * & \pbox{10cm}{Der Pfad zur Eingabedatei, in der die Hindernisse und Start- sowie Endpunkte der zu findenden Pfade gespeichert sind} \\
 	out\_file & * & \pbox{10cm}{Der Pfad zur Datei, in die die gefundenen Pfade geschrieben werden} \\
 	h & & Hilfe zum Programmaufruf anzeigen \\
 	d & & \pbox{10cm}{Die Trapezzerlegung (\textbf{d}ecomposition) der Eingabedaten visualisieren, nachdem die Hindernis-Trapeze entfernt wurden} \\
