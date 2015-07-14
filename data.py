@@ -9,7 +9,7 @@ for m in M:
 	n = 2*(m+2)//3
 	
 	points = []
-	length = max(2 * n, 4)
+	length = max(3 * n, 4)
 	for i in range(n // 2):
 		points.append((2*i, 2*i))
 		points.append((2*i+length, 2*i))
@@ -23,7 +23,7 @@ for m in M:
 	
 	queries = []
 	for i in range(n // 2 - 1):
-		x = random.uniform(2*i + 1, 2*i+length - 1)
+		x = random.uniform(2*i + 2, 2*i+length - 2)
 		y = random.uniform(2*i, 2*(i+1))
 		queries.append((x, y))
 
