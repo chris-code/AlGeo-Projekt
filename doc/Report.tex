@@ -192,6 +192,26 @@ Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschlie�
 In unserem Algorithmus wird zunächst Trapez $A$ erstellt. Dessen westliche Nachbarn werden auf die Nachbarn von $\Delta_1$ gesetzt. Entsprechende Rückverweise werden ebenfalls gesetzt.
 Anschließend beginnen wir mit einer Schleife, welche über die $\Delta_i$ Trapeze iteriert. Da die Behandlung oberhalb und unterhalb der Strecke analog erfolgt, wird im Folgenden nur die Behandlung der Trapeze oberhalb der Strecke dargelegt. Zu Beginn erzeugen wir ein neues Trapez $\Delta_u$, welches auf den verbleibenden Teil von $\Delta_1$ rechts von $p$ und oberhalb von der Strecke gesetzt wird. Dieses Trapez erhält Trapez $A$ als nordwestlichen Nachbarn und als nordöstlichen Nachbarn den nordöstlichen Nachbarn von $\Delta_1$. Anschließend betrachten wir das Trapez $\Delta_2$ oberhalb der Strecke und stellen fest, dass die obere Kante des Trapezes die gleiche ist wie bei $\Delta_u$. Somit müssen wir unser bisheriges $\Delta_u$ mit dem betrachteten Ausschnitt von $\Delta_2$ verschmelzen. Auch an dieser Stelle muss der nordöstliche Nachbar verändert werden, er wird auf den nordöstlichen Nachbarn von $\Delta_2$ gesetzt. Nun betrachten wir Trapez $\Delta_3$ oberhalb der Strecke. Wir stellen fest, dass hier die oberen Begrenzungskanten ungleich sind. Somit lassen wir unser bisheriges $\Delta_u$ unverändert und erstellen ein neues Trapez $\Delta_u$, welches einen Südwestverweis auf das bisherige $\Delta_u$ und einen Nordwestverweis auf den nordwestlichen Nachbarn von Trapez $\Delta_3$ erhält. Auch hier müsste der nordöstliche Nachbar gesetzt werden, diesmal auf den jedoch nicht existierenden nordöstlichen Nachbarn von Trapez $\Delta_3$. Wie immer werden auch hier die enstprechenden Rückverweise gesetzt. Auf diese Weise verfahren wir weiter, bis wir beim letzten Trapez angelangt sind. 
 
+\section{Facettenzuweisung}
+Ziel des Projektes ist es, die Indizes der Punkte innerhalb einer Facette in eine Zeile der Ausgabedatei zu schreiben. Problematisch ist hierbei, dass als Eingabedaten nur die Strecken, die die Ebene unterteilen zur Verfügung stehen. Eine Zuordnung der jeweiligen Seiten der Strecken zu Facetten ist dagegen nicht gegeben. Somit muss die Zuordnung der erstellten Trapeze zu der passenden Facette noch berechnet werden. Hier ist die zentrale Beobachtung, dass zwei Trapeze in einer Facette liegen, wenn sie einander über Nachbarschaftsbeziehungen (evtl. mit Zwischentrapezen) erreichen können. Ein geeigneter Algorithmus ist also
+
+\begin{lstlisting}
+	assign face(trapezoid, face)
+		if trapezoid is not assigned a face:
+			assign trapezoid to face
+			for all neighbors of trapezoid:
+				assign face(neighbor, face)
+	
+	assign faces(T)
+	for trapezoid in T:
+		face = new Face
+		assign face(trapezoid, face)
+\end{lstlisting}
+
+In unserer Implementierung ist eine Facette eine inkrementierende Integer-Variable, die dem Trapez-Objekt als Attribut hinzugefügt werden. Damit ist es in konstanter Zeit möglich, von dem Trapez auf die Facette zu schließen. Da die Zuweisung in jeder Facette nur einmal gestartet wird und innerhalb dieser Facette höchstens von $4$ Nachbarn 'betreten' wird, ist die Laufzeit der Zuweisung $\mathcal{O}(\abs{T})$ und damit $\mathcal{O}(m)$, wobei $m$ die Anzahl der Strecken ist.
+
+\section{Punktgruppierung}
+
 \section{Performance}
 Zum Testen der Performance wurden Testdatensätze generiert, die automatisch von einem weiteren Python3-Programm erstellt werden. Diese entsprechen der Form nach einem gescherten Lattenrost, exemplarisch dargestellt in Abbildung \ref{fig:generated_dataset}. Zusätzlich wird für jede Facette ein Abfragepunkt generiert, der an einem zufälligen Ort in der Facette liegt.
 
@@ -230,6 +250,7 @@ Auf derartigen Datensätzen unterschiedlicher Größe wurde die Laufzeit der 3 H
 
 Hierbei lässt sich feststellen, dass alle 3 Werte näherungsweise linear wachsen. Ein leichter superlinearer Trend lässt sich allerdings visuell bei der Punktgruppierung erahnen. Die Trapezzerlegung ist mit einigem Abstand die langwierigste Operation, wobei hierbei sowieso der größte konstante Faktor zu erwarten wäre. Da die Lokalisierung eines Punktes in erwartet $\mathcal{O}(\log n)$ läuft, ist die erwartete Laufzeit für das Lokalisieren von $\mathcal{O}(n \log n)$. Dies entspricht auch der insgesammt erwarteten Laufzeit für den Gruppierungsteil, da das Gruppieren der lokalisierten Punkte über das Einfügen in ein \texttt{Python-Dictionary} in armortisierter konstanter Zeit realisiert ist.
 
+\appendix
 \section{Programmnutzung}
 Bei den Programmen zur Trapezzerlegung und Pfadsuche handelt es sich um Python3-Programme. Daher muss auf der Zielplattform eine Python3-Runtime installiert sein, das ältere Python2 wird nicht unterstützt. Darüber hinaus weisen die Programme keine externen Abhängigkeiten (etwa zu Drittbibliotheken) auf.
 
