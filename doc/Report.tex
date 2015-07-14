@@ -8,9 +8,10 @@
 \usepackage{mathtools}
 \usepackage{amssymb}
 \usepackage{eurosym} %Euro symbol
-%\usepackage[ngerman]{babel}
+\usepackage[ngerman]{babel}
 \usepackage{cancel} %Kürzen
 \usepackage{pbox}
+\usepackage{tikz}
 
 \newcommand\braces[1]{\left(#1\right)}
 \newcommand\brackets[1]{\left[#1\right]}
@@ -29,6 +30,7 @@
 \newcommand{\gerquote}[1]{\glqq#1\grqq}
 \newcommand{\T}{\ensuremath{\mathcal{T}} }
 \newcommand{\D}{\ensuremath{\mathcal{D}} }
+\newcommand{\bul}{\ensuremath{\bullet}}
 
 \title{Algorithmische Geometrie Projekt \\ Trapezzerlegung}
 \author{Phil Yannick Schrör \and Christian Mielers}
@@ -41,6 +43,14 @@
 
 \begin{document}
 \maketitle
+
+\section{Einleitung}
+
+\begin{itemize}
+\item Zerlegung
+\item Facettenzuweisung
+\item Punktgruppierung
+\end{itemize}
 
 \section{Objekte und Datenstrukturen}
 
@@ -66,6 +76,121 @@ In Abbildung \ref{fig:neighbors} ist ein Trapez $A$ gezeigt, welches vier Nachba
 Als Datenstruktur für die Trapezzerlegung \T haben wir die Python-Klasse \texttt{set} verwendet, da diese zahlreiche Methoden für mathematische Mengen zur Verfügung stellt. \T enthält somit lediglich die Menge aller zur Trapezzerlegung gehörenden Trapeze.\\
 Für die Suchstruktur \D haben wir die neue Klasse \texttt{Tree} entworfen. Ein Objekt dieser Klasse hat zum einen ein Attribut, welches den 'Inhalt' des Knotens speichert. Dabei kann es sich um eine Strecke, einen Punkt oder ein Trapez handeln. Zum anderen speichert es einen Links- und einen Rechtsverweis auf sein linkes bzw. rechtes Kind. Soll für einen Anfragepunkt $\rho$ ermittelt werden, in welchem Trapez dieser liegt, wird die Suchstruktur beginnend mit dem Wurzelknoten hinabgestiegen und dabei bei Punkten ermittelt, ob $\rho$ links oder rechts davon liegt, und bei Strecken, ob $\rho$ darüber oder darunter liegt. Entsprechend wird dann rekursiv mit dem linken bzw. rechten Kindknoten fortgefahren. Wird ein Blattknoten und damit ein Trapez erreicht, wird dieses als das den Punkt $\rho$ beinhaltendes Trapez als Antwort zurückgeliefert.
 
+\section{Konstruktionsalgorithmus}
+
+Zu Beginn der Konstruktion der Trapezzerlegung wird zunächst eine ausreichend große Bounding Box erzeugt und sowohl in \T als auch in \D eingefügt. Anschließend werden zwecks Randomisierung die Eingabestrecken in zufällige Reihenfolge gebracht. Daraufhin wird mit der Hauptschleife begonnen, in der pro Iteration eine Strecke zur Trapezzerlegung hinzugefügt wird. 
+Innerhalb der Schleife wird zunächst ermittelt, welche der bereits in die Trapezzerlegung eingefügten Trapeze von der neu einzufügenden Strecke geschnitten werden. Handelt es sich dabei bloß um ein Trapez, ist eine andere Behandlung erforderlich als wenn es sich um mehrere Trapeze handelt. Abbildung \ref{fig:one_trap_inside} zeigt den Fall, dass die neu eingefügt Strecke $\overline{pq}$ innerhalb exakt eines Trapezes liegt.
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=0.8]
+		\node (1) at (-1,1.3) {\bul};
+		\node (2) at (9,-1.95) {\bul};
+	
+		\draw[-] (-3,1) to (10,3);
+		\draw[-] (-3,-1) to (10,-2);
+		\draw[-] (1) to (-1,-1.1);
+		\draw[-] ( 2) to (9,2.79);
+		
+		\node (3) at (1,0) {\bul};
+		\node (4) at (7,0.5) {\bul};
+		\draw[-] (3) to (4);
+		\draw[-] (1,-1.3) to (1,1.57);
+		\draw[-] (7,-1.8) to (7,2.5);
+		
+		\node (A) at (0,0) {$A$};
+		\node (B) at (4,1.2) {$B$};
+		\node (C) at (4,-0.7) {$C$};
+		\node (D) at (8,0.5) {$D$};
+		\node (p) at (.7,-0.2) {$p$};
+		\node (q) at (7.3,0.4) {$q$};
+	\end{tikzpicture}
+	\caption{Die neue Strecke liegt innerhalb eines Polygons.}
+	\label{fig:one_trap_inside}
+\end{figure}\\
+Innerhalb dieses Falles gibt es neben dem dargestellten Fall noch drei weitere Fälle. Der Punkt $p$ könnte auf der linken Grenze von Trapez $A$ liegen, Punkt $q$ könnte auf der rechten Grenze von Trapez $D$ liegen und es könnte passieren, dass beide Fälle eintreten. Jeder dieser Fälle benötigt eine eigene Behandlung, da entweder Trapez $A$ nicht erzeugt werden muss, Trapez $D$ nicht erzeugt werden muss oder beide Trapeze nicht erzeugt werden müssen.\\
+Liegt die einzufügende Strecke nur innerhalb eines Trapezes, gestaltet sich die Bestimmung der Nachbarn relativ einfach. Dies sei exemplarisch am in Abbildung \ref{fig:one_trap_inside} dargestellten Fall gezeigt. Hier müssen die westlichen Nachbarn des ursprünglichen Trapezes Trapez $A$ zugeordnet werden. Dies erfolgt analog mit den östlichen Nachbarn von Trapez $D$. Ferner erhalten $A$ und $D$ als östliche bzw. westliche Nachbarn die Trapeze $B$ (nördlich) und $C$ (südlich). Darüber hinaus müssen entsprechende Rückverweise von den Nachbarn des ursprünglichen Trapezes auf die neu erstellen Trapeze gesetzt werden.\\
+Tritt der Fall auf, dass die neu eingefügte Strecke mehrere Trapeze $\Delta_1, \ldots, \Delta_n$ schneidet, gestaltet sich die Erstellung der neu einzufügenden Trapeze etwas schwieriger. Dazu betrachten wir das in Abbildung \ref{fig:multiple_traps} dargestellte Szenario. Anders als in Abbildung \ref{fig:one_trap_inside} wurden die neu einzufügenden Trapeze noch nicht in die Abbildung integriert.
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=0.8]
+		\node (1) at (0,0) {\bul};
+		\node (2) at (4,-2) {\bul};
+		\node (3) at (5,1) {\bul};
+		\node (4) at (9,2) {\bul};
+		\node (5) at (12,-1) {\bul};
+		\node (6) at (16,0) {};
+		
+		\draw[-] (1) to (6,2);
+		\draw[-] (1) to (2);
+		\draw[-] (3) to (5,1.6);
+		\draw[-] (2) to (5);
+		\draw[-] (3) to (4);
+		\draw[-] (4) to (6);
+		
+		\draw[-] (2) to (4,1.3);
+		\draw[-] (3) to (5,-1.8);
+		\draw[-] (4) to (9,-1.35);
+		\draw[-] (5) to (12,1.1);
+		
+		\node (7) at (2.7,0) {\bul};
+		\node (8) at (10.6,0.5) {\bul};
+		\draw[-] (7) to (8);
+		\node (p) at (2.4,-0.2) {$p$};
+		\node (q) at (10.9,0.4) {$q$};
+		
+		\node (D1) at (1.7,-0.1) {$\Delta_1$};
+		\node (D2) at (4.5,-0.6) {$\Delta_2$};
+		\node (D3) at (7,-0.5) {$\Delta_3$};
+		\node (D4) at (10.5,-0.2) {$\Delta_4$};
+	\end{tikzpicture}
+	\caption{Die neue Strecke liegt innerhalb mehrerer Trapeze}
+	\label{fig:multiple_traps}
+\end{figure}\\
+Zunächst muss nun ein Trapez $A$ links vom Punkt $p$ erstellt werden. Anschließend werden überhalb und unterhalb der Strecke Trapeze erzeugt und gegebenenfalls verschmolzen. Zum Abschluss muss ein weiteres Trapez $G$ rechts vom Punkt $q$ erzeugt werden. Dies führt zu der in Abbildung \ref{fig:multiple_traps_2} dargestellten Situation.
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=0.8]
+		\node (1) at (0,0) {\bul};
+		\node (2) at (4,-2) {\bul};
+		\node (3) at (5,1) {\bul};
+		\node (4) at (9,2) {\bul};
+		\node (5) at (12,-1) {\bul};
+		\node (6) at (16,0) {};
+		
+		\draw[-] (1) to (6,2);
+		\draw[-] (1) to (2);
+		\draw[-] (3) to (5,1.6);
+		\draw[-] (2) to (5);
+		\draw[-] (3) to (4);
+		\draw[-] (4) to (6);
+		
+		\draw[-] (2) to (4,0.05);
+		\draw[-] (3) to (5,0.18);
+		\draw[-] (4) to (9,0.38);
+		\draw[-] (5) to (12,1.1);
+		
+		\node (7) at (2.7,0) {\bul};
+		\node (8) at (10.6,0.5) {\bul};
+		\draw[-] (7) to (8);
+		\node (p) at (2.4,-0.2) {$p$};
+		\node (q) at (10.9,0.4) {$q$};
+		
+		\draw[-] (2.7,-1.3) to (2.7,0.9);
+		\draw[-] (10.6,1.5) to (10.6,-1.1);
+		
+		\node (A) at (1.5,-0.1) {$A$};
+		\node (B) at (3.8,0.7) {$B$};
+		\node (C) at (7,0.9) {$C$};
+		\node (D) at (9.8,1.1) {$D$};
+		\node (E) at (3.5,-0.7) {$E$};
+		\node (F) at (7,-0.7) {$F$};
+		\node (G) at (11.3,-0.2) {$G$};
+	\end{tikzpicture}
+	\caption{Die neue Strecke liegt innerhalb mehrerer Trapeze}
+	\label{fig:multiple_traps_2}
+\end{figure}\\
+In unserem Algorithmus wird zunächst Trapez $A$ erstellt. Dessen westliche Nachbarn werden auf die Nachbarn von $\Delta_1$ gesetzt. Entsprechende Rückverweise werden ebenfalls gesetzt.
+Anschließend beginnen wir mit einer Schleife, welche über die $\Delta_i$ Trapeze iteriert. Da die Behandlung oberhalb und unterhalb der Strecke analog erfolgt, wird im Folgenden nur die Behandlung der Trapeze oberhalb der Strecke dargelegt. Zu Beginn erzeugen wir ein neues Trapez $\Delta_u$, welches auf den verbleibenden Teil von $\Delta_1$ rechts von $p$ und oberhalb von der Strecke gesetzt wird. Dieses Trapez erhält Trapez $A$ als nordwestlichen Nachbarn und als nordöstlichen Nachbarn den nordöstlichen Nachbarn von $\Delta_1$. Anschließend betrachten wir das Trapez $\Delta_2$ oberhalb der Strecke und stellen fest, dass die obere Kante des Trapezes die gleiche ist wie bei $\Delta_u$. Somit müssen wir unser bisheriges $\Delta_u$ mit dem betrachteten Ausschnitt von $\Delta_2$ verschmelzen. Auch an dieser Stelle muss der nordöstliche Nachbar verändert werden, er wird auf den nordöstlichen Nachbarn von $\Delta_2$ gesetzt. Nun betrachten wir Trapez $\Delta_3$ oberhalb der Strecke. Wir stellen fest, dass hier die oberen Begrenzungskanten ungleich sind. Somit lassen wir unser bisheriges $\Delta_u$ unverändert und erstellen ein neues Trapez $\Delta_u$, welches einen Südwestverweis auf das bisherige $\Delta_u$ und einen Nordwestverweis auf den nordwestlichen Nachbarn von Trapez $\Delta_3$ erhält. Auch hier müsste der nordöstliche Nachbar gesetzt werden, diesmal auf den jedoch nicht existierenden nordöstlichen Nachbarn von Trapez $\Delta_3$. Wie immer werden auch hier die enstprechenden Rückverweise gesetzt. Auf diese Weise verfahren wir weiter, bis wir beim letzten Trapez angelangt sind. 
 
 \section{Programmnutzung}
 Bei den Programmen zur Trapezzerlegung und Pfadsuche handelt es sich um Python3-Programme. Daher muss auf der Zielplattform eine Python3-Runtime installiert sein, das ältere Python2 wird nicht unterstützt. Darüber hinaus weisen die Programme keine externen Abhängigkeiten (etwa zu Drittbibliotheken) auf.
@@ -119,7 +244,6 @@ Die Visualisierungsoptionen können alle im selben Aufruf genutzt werden.
 \item Wie werden mehrere gefundene Trapeze unterteilt?
 \item Wie Trapzen Facetten zugeteilt werden
 \item Gruppen der Punkte anhand der Facetten
-\item Wie werden die Nachbarn zugeordnet (Himmelsrichtungen?)
 \end{itemize}
 
 \end{document}
