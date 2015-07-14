@@ -1,0 +1,71 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{eurosym} %Euro symbol
+%\usepackage[ngerman]{babel}
+\usepackage{cancel} %Kürzen
+
+\newcommand\braces[1]{\left(#1\right)}
+\newcommand\brackets[1]{\left[#1\right]}
+\renewcommand{\vec}[1]{\underline{#1}}
+\newcommand{\mat}[1]{\underline{\underline{#1}}}
+\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand\tr[1]{\mathrm{tr}\br{#1}}
+\newcommand\average[1]{\left\langle#1\right\rangle}
+\newcommand{\acos}[1]{\mathrm{acos}\braces{#1}}
+\newcommand{\asin}[1]{\mathrm{asin}\braces{#1}}
+\newcommand{\dx}[1][x]{\ \mathrm{d#1}}
+\newcommand\expectedValue[1]{\mathbb{E}\braces{#1}}
+\newcommand\variance[1]{\mathbb{V}\braces{#1}}
+\newcommand\setequal{\overset{!}{=}}
+\newcommand{\gerquote}[1]{\glqq#1\grqq}
+
+\title{Algorithmische Geometrie Projekt \\ Trapezzerlegung}
+\author{Yannick Schrör \and Christian Mielers}
+\date{\today}
+
+% Warum in Python?
+
+\begin{document}
+\maketitle
+
+\section{Programmnutzung}
+Bei den Programmen zur Trapezzerlegung und Pfadsuche handelt es sich um Python3-Programme. Daher muss auf der Zielplattform eine Python3-Runtime installiert sein, das ältere Python2 wird nicht unterstützt. Darüber hinaus weisen die Programme keine externen Abhängigkeiten (etwa zu Drittbibliotheken) auf.
+
+\paragraph{Trapezzerlegung} Die Trapezzerlegung wird in der Datei \texttt{trapezoid\_decomposition.py} realisiert. Die Syntax zum Programmaufruf lautet
+
+trapezoid\_decomposition.py [-h] [-i] [-d] [-l] in\_file out\_file
+
+\begin{tabular}{|c|c|c|}
+	\hline
+	Parameter & erforderlich & Bedeutung \\
+	\hline
+	in\_file & * & Der Pfad zur Eingabedatei \\
+	out\_file & * & \\
+	h & & \\
+	i & & \\
+	d & & \\
+	l & & \\
+	\hline
+\end{tabular}
+
+\paragraph{Pfadsuche}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
