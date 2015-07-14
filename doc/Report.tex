@@ -348,6 +348,13 @@ Um die Punkte in der selben Facette in eine Zeile schreiben zu können, müssen 
 
 Die einzelnen Gruppen werden in unserem Programm als Python \texttt{list} vorgehalten, die ein Anfügen eines Punktes in $\mathcal{O}(1)$ erlauben. Um ohne explizite Repräsentation der Facetten (es gibt kein Facetten-Objekt oder Ähnliches) von der Integer-Variable, die den Facettenindex angibt, zu der entsprechenden Liste zu gelangen, werden die Listen in einer Hashmap (Python-\texttt{dictionary}) mit Facettenindex gespeichert, so dass das Finden der gesuchten Liste in erwartet $\mathcal{O}(1)$ möglich ist.
 
+\section{Pfadsuche}
+Ein weiterer Teil der Aufgabenstellung bestand darin, die Trapezzerlegung für die Pfadsuche in einer Ebene mit Hindernissen zu nutzen. Dies ist möglich, wenn der Umriss der Hindernisse als Menge von Kanten gegeben ist, da diese eine eigene Facette bilden. Bewegt man sich nur entlang der Nachbarschaftsverweise, wird man also nie ein Hindernis übertreten.
+
+Dementsprechend ist der erste Schritt, auf der Kantenmenge der Hindernisse die Trapezzerlegung zu berechnen und die Facetten zu bestimmen. Da Hindernisse niemals betreten werden, können dann Trapeze im Inneren gelöscht werden. Um die Pfadsuche entlang der Nachbarschaftsverweise über klar definierte Punkte laufen zu lassen, wird dann aus der zulässigen Facette eine \texttt{Road Map} erstellt. Diese enthält für jede Facette einen Knoten in deren Zentrum so wie einen Knoten auf halber Höhe jeder Seite, die sich zwei zulässige Trapeze teilen. Die Zentrumsknoten lassen sich trivial erstellen. Für die Verbindungsknoten reicht es, wenn jedes Trapez seine rechten Verbindungsknoten erstellt und deren Verweise zu seinen rechten Nachbarn erstellt, inklusive der Rückverweise.
+
+Um für gegebene Start- und Endpunkte effizient die entsprechenden Knoten bestimmen zu können, werden die Zentrumsknoten den Trapezen als Attribut zugewiesen. Dann reicht eine Breitensuche auf der \texttt{Road Map}, um den Pfad zwischen diesen Knoten zu bestimmen.
+
 \section{Performance}
 \label{sec:performance}
 
