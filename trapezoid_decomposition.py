@@ -74,10 +74,14 @@ class Tree:
 			else:
 				return self.right._find_node(point)
 		elif isinstance(self.content, Point):
-			if point.is_left_of(self.content):
-				return self.left._find_node(point)
-			else:
+			#~ if point.is_left_of(self.content):
+				#~ return self.left._find_node(point)
+			#~ else:
+				#~ return self.right._find_node(point)
+			if point.is_right_of(self.content):
 				return self.right._find_node(point)
+			else:
+				return self.left._find_node(point)
 		else:
 			raise Exception('Nope.')
 	
@@ -847,8 +851,6 @@ def construct_trapezoid_decomposition(edges):
 	T, D = initialize(edges)
 	random.shuffle(edges)
 	
-	find_intersections_time = 0
-	split_time = 0
 	for line in edges:
 		#~ print('--------------------')
 		#~ print('\nT:\n{0}'.format(T))
@@ -858,12 +860,8 @@ def construct_trapezoid_decomposition(edges):
 		#~ vis.draw_decomposition(T)
 		#~ vis.show_surface()
 		
-		start_time = timer()
 		H = T.get_intersected_trapezoids(D, line)
-		end_time = timer()
-		find_intersections_time += end_time - start_time
 		
-		start_time = timer()
 		T -= set(H)
 		if len(H) == 1:
 			delta0 = H[0]
@@ -885,11 +883,6 @@ def construct_trapezoid_decomposition(edges):
 				handle_multiple_trapezoids_right_touching(T, D, H, line)
 			else: # line.p.x == H[0].leftp.x and line.q.x == H[-1].rightp.x:
 				handle_multiple_trapezoids_both_touching(T, D, H, line)
-		end_time = timer()
-		split_time += end_time - start_time
-	
-	print('\tFind trapezoids time: {0:.4f}'.format(find_intersections_time))
-	print('\tSplit trapezoids time: {0:.4f}'.format(split_time))
 	return T, D
 
 # Groups points by the faces they are in
@@ -913,6 +906,7 @@ def main():
 	argparser = argparse.ArgumentParser()
 	argparser.add_argument('in_file', help='The file to read data from')
 	argparser.add_argument('out_file', help='The file to store results in')
+	argparser.add_argument('-t', '--timing', help='Print timing info', action='store_true')
 	argparser.add_argument('-i', '--visualize_input', help='Draw input on screen', action='store_true')
 	argparser.add_argument('-d', '--visualize_decomposition', help='Draw trapezoid decomposition on screen', action='store_true')
 	argparser.add_argument('-l', '--visualize_localization', help='Draw localization on screen', action='store_true')
@@ -930,17 +924,20 @@ def main():
 	start_time = timer()
 	T, D = construct_trapezoid_decomposition(edges)
 	end_time = timer()
-	print('Decomposition time: {0:.4f}'.format(end_time - start_time))
+	if args.timing:
+		print('Decomposition time: {0:.4f}'.format(end_time - start_time))
 	
 	start_time = timer()
 	assign_faces(T)
 	end_time = timer()
-	print('Face assignment time: {0:.4f}'.format(end_time - start_time))
+	if args.timing:
+		print('Face assignment time: {0:.4f}'.format(end_time - start_time))
 	
 	start_time = timer()
 	groups = group_points(D, queries)
 	end_time = timer()
-	print('Point grouping time: {0:.4f}'.format(end_time - start_time))
+	if args.timing:
+		print('Point grouping time: {0:.4f}'.format(end_time - start_time))
 
 	if args.visualize_decomposition:
 		vis.draw_decomposition(T, D, [])
